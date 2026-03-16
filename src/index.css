@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Page background – sage green-gray matching reference */
+    --bg: #E8EAE0;
+    /* Sidebar dark navy */
+    --sidebar: #2E3147;
+    --sidebar-hover: #3D4058;
+    --sidebar-active: #3D4058;
+    /* Cards / surfaces */
+    --surface: #FFFFFF;
+    --surface-alt: #F4F5F0;
+    /* Borders */
+    --color-border: #E5E7EB;
+    --border-light: #F0F1EC;
+    /* Text */
+    --text-primary: #1A1F36;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    /* Accent / icons */
+    --accent: #5BA07A;
+    /* Primary action button (dark forest green) */
+    --btn-primary: #2D4535;
+    --btn-primary-hover: #243A2C;
+    /* Semantic colors */
+    --success: #065F46;
+    --success-bg: #D1FAE5;
+    --warning: #92400E;
+    --warning-bg: #FEF3C7;
+    --info: #1E40AF;
+    --info-bg: #DBEAFE;
+    --danger: #991B1B;
+    --danger-bg: #FEE2E2;
+
+    /* Legacy vars for existing component classes */
+    --background: var(--bg);
+    --foreground: var(--text-primary);
+    --card: var(--surface);
+    --card-foreground: var(--text-primary);
+    --primary: var(--btn-primary);
+    --primary-foreground: #FFFFFF;
+    --secondary: var(--surface-alt);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--surface-alt);
+    --muted-foreground: var(--text-secondary);
+    --border: var(--color-border);
+    --input: var(--surface);
+    --ring: var(--accent);
+    --radius: 0.75rem;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* Status badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase whitespace-nowrap;
+  }
+  .badge-livre   { background: var(--success-bg); color: var(--success); }
+  .badge-en-cours { background: var(--warning-bg); color: var(--warning); }
+  .badge-expedie { background: var(--info-bg);    color: var(--info);    }
+  .badge-annule  { background: var(--danger-bg);  color: var(--danger);  }
+  .badge-actif   { background: var(--success-bg); color: var(--success); }
+  .badge-integration { background: var(--warning-bg); color: var(--warning); }
+  .badge-pending { background: var(--warning-bg); color: var(--warning); }
+
+  /* Vendor initials circles */
+  .initials-bp { @apply bg-blue-100 text-blue-700; }
+  .initials-es { @apply bg-orange-100 text-orange-700; }
+  .initials-lm { @apply bg-purple-100 text-purple-700; }
+  .initials-ah { @apply bg-rose-100 text-rose-700; }
+  .initials-vs { @apply bg-green-100 text-green-700; }
+  .initials-sj { @apply bg-teal-100 text-teal-700; }
+  .initials-hv { @apply bg-sky-100 text-sky-700; }
+  .initials-gp { @apply bg-emerald-100 text-emerald-700; }
+
+  /* Card base */
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm;
+  }
+
+  /* Primary action button */
+  .btn-primary {
+    background: var(--btn-primary);
+    color: #FFFFFF;
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+  }
+  .btn-primary:hover {
+    background: var(--btn-primary-hover);
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors;
+  }
+}
