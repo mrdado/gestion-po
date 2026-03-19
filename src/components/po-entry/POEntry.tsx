@@ -301,7 +301,7 @@ export function POEntry() {
               </div>
 
               <div className="flex flex-col gap-3">
-                {items.map((item, index) => (
+                {items.map((item) => (
                   <div key={item.id} className="grid items-center gap-3 p-2 rounded-lg bg-gray-50 border border-gray-100" style={{ gridTemplateColumns: '1fr 100px 140px 100px 40px' }}>
                     <input 
                       required
