@@ -193,7 +193,13 @@ export function POList() {
 
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{po.vendor?.name || 'Fournisseur Inconnu'}</span>
+                      <Link 
+                        to={`/fournisseur/${po.vendor_id}`} 
+                        className="text-sm font-medium hover:text-emerald-600 transition-colors"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {po.vendor?.name || 'Fournisseur Inconnu'}
+                      </Link>
                     </div>
                   </div>
 
