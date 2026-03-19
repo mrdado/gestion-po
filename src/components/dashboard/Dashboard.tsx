@@ -211,8 +211,8 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        <p className="mt-4 text-sm text-gray-500 font-medium">Initialisation du tableau de bord...</p>
+        <Loader2 className="loading-spinner h-8 w-8" />
+        <p className="mt-4 loading-message">Initialisation du tableau de bord...</p>
       </div>
     );
   }
@@ -320,13 +320,13 @@ export function Dashboard() {
             </div>
             <div className="flex flex-col gap-3">
               {allPOsForCalculations.length === 0 ? (
-                <div className="py-8 text-center" style={{ color: 'var(--text-tertiary)' }}>
-                  <p className="text-sm font-medium">Aucune commande trouvée.</p>
-                  <p className="text-xs mt-1">Commencez par créer votre premier bon de commande.</p>
+                <div className="py-8 text-center">
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Aucune commande trouvée.</p>
+                  <p className="text-xs mt-1 empty-state">Commencez par créer votre premier bon de commande.</p>
                 </div>
               ) : (
                 allPOsForCalculations.slice(0, 5).map((po) => (
-                  <Link to={`/po/${po.id}`} key={po.id} className="flex items-center gap-3 p-3 rounded-lg transition-colors nav-item" style={{ backgroundColor: 'var(--surface-alt)', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--surface-alt)'}>
+                  <Link to={`/po/${po.id}`} key={po.id} className="flex items-center gap-3 p-3 rounded-lg hover-surface" style={{ backgroundColor: 'var(--surface-alt)', cursor: 'pointer' }}>
                     <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center bg-white shadow-sm border" style={{ borderColor: 'var(--color-border)' }}>
                        <FileText className="h-4 w-4" style={{ color: 'var(--text-tertiary)' }} />
                     </div>

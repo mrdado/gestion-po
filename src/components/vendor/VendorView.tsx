@@ -3,10 +3,12 @@ import { TrendingUp, Loader2, Search, Plus, Mail, Package, Users, Award, Trash2 
 import { PageHeader } from '../layout/PageHeader';
 import { supabase } from '../../lib/supabase';
 import { VendorForm } from './VendorForm';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
-const statusMap: Record<string, { label: string; cls: string }> = {
-  actif:       { label: 'ACTIF',       cls: 'badge-actif' },
-  integration: { label: 'INTÉGRATION', cls: 'badge-integration' },
+const statusMap: Record<string, { label: string; variant: 'actif' | 'integration' }> = {
+  actif:       { label: 'ACTIF',       variant: 'actif' },
+  integration: { label: 'INTÉGRATION', variant: 'integration' },
 };
 
 export function VendorView() {
@@ -114,9 +116,9 @@ export function VendorView() {
       <div className="px-8 flex flex-col gap-8">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="card p-6 border-l-4 border-emerald-500 hover:shadow-md transition-shadow">
+          <div className="card p-6 border-l-4 border-emerald-500 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-default">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-emerald-bg)', color: 'var(--kpi-emerald-color)' }}>
                 <Users size={24} />
               </div>
               <div>
@@ -129,9 +131,9 @@ export function VendorView() {
             </div>
           </div>
 
-          <div className="card p-6 border-l-4 border-amber-500 hover:shadow-md transition-shadow">
+          <div className="card p-6 border-l-4 border-amber-500 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-default">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-amber-bg)', color: 'var(--kpi-amber-color)' }}>
                 <Package size={24} />
               </div>
               <div>
@@ -144,9 +146,9 @@ export function VendorView() {
             </div>
           </div>
 
-          <div className="card p-6 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+          <div className="card p-6 border-l-4 border-blue-500 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-default">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-blue-bg)', color: 'var(--kpi-blue-color)' }}>
                 <Award size={24} />
               </div>
               <div>
@@ -167,13 +169,14 @@ export function VendorView() {
               <span className="w-2 h-6 bg-emerald-500 rounded-full" />
               Répertoire Actif
             </h3>
-            <button 
+            <Button 
+              variant="primary"
               onClick={handleAdd}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2"
+              aria-label="Ajouter un nouveau fournisseur"
             >
               <Plus size={18} />
               Ajouter un Fournisseur
-            </button>
+            </Button>
           </div>
 
           <div className="card overflow-hidden border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -192,17 +195,17 @@ export function VendorView() {
                 <tbody className="divide-y divide-slate-50">
                   {loading && filteredVendors.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-emerald-500" />
-                        Chargement des fournisseurs...
-                      </td>
-                    </tr>
-                  ) : filteredVendors.map((v) => {
-                    const st = statusMap[v.status] || statusMap.actif;
-                    const initials = v.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-                    
-                    return (
-                      <tr key={v.id} className="group hover:bg-slate-50/50 transition-colors">
+                       <td colSpan={6} className="px-6 py-12 text-center">
+                         <Loader2 className="loading-spinner h-8 w-8 mx-auto mb-2" />
+                         <p className="loading-message">Chargement des fournisseurs...</p>
+                       </td>
+                     </tr>
+                   ) : filteredVendors.map((v) => {
+                     const st = statusMap[v.status] || statusMap.actif;
+                     const initials = v.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+                     
+                     return (
+                       <tr key={v.id} className="group hover-surface">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-xs shadow-sm shadow-emerald-100">
@@ -232,23 +235,27 @@ export function VendorView() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`badge ${st.cls} shadow-sm`}>{st.label}</span>
+                          <Badge variant={st.variant}>{st.label}</Badge>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button 
+                            <Button 
+                              variant="secondary"
+                              size="sm"
                               onClick={() => handleEdit(v)}
-                              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-all"
+                              aria-label={`Modifier le fournisseur ${v.name}`}
                             >
                               Modifier
-                            </button>
-                            <button 
+                            </Button>
+                            <Button 
+                              variant="danger"
+                              size="icon"
                               onClick={() => handleDelete(v.id, v.name)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                               title="Supprimer"
+                              aria-label={`Supprimer le fournisseur ${v.name}`}
                             >
                               <Trash2 size={16} />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -257,9 +264,9 @@ export function VendorView() {
                 </tbody>
               </table>
               {!loading && filteredVendors.length === 0 && (
-                <div className="px-6 py-12 text-center text-slate-400">
+                <div className="px-6 py-12 text-center">
                   <Search className="h-8 w-8 mx-auto mb-2 opacity-20" />
-                  <p className="text-sm italic">Aucun fournisseur ne correspond à votre recherche</p>
+                  <p className="empty-state">Aucun fournisseur ne correspond à votre recherche</p>
                 </div>
               )}
             </div>

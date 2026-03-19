@@ -4,6 +4,9 @@ import { Clock, Trash2, Edit, Save, Loader2, FileText } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from '../ui/Table';
 
 export function PODetail() {
   const { id } = useParams<{ id: string }>();
@@ -176,7 +179,7 @@ export function PODetail() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="loading-spinner h-8 w-8" />
       </div>
     );
   }
@@ -192,15 +195,16 @@ export function PODetail() {
   });
 
   const subtotal = po.total_amount;
-  const statusColors: any = {
-    'Commandé': { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' },
-    'Partiel': { bg: '#FFF7ED', text: '#D97706', border: '#FED7AA' },
-    'Partielle': { bg: '#FFF7ED', text: '#D97706', border: '#FED7AA' },
-    'Reçu': { bg: '#E8F0EC', text: '#16A34A', border: '#B5D5C5' },
-    'Facturé': { bg: '#FEF3E2', text: '#D97706', border: '#FDE68A' },
-    'Payé': { bg: '#F3E8FF', text: '#9333EA', border: '#E9D5FF' }
+  
+  const statusVariantMap: Record<string, 'commandé' | 'partiel' | 'reçu' | 'facturé' | 'payé'> = {
+    'Commandé': 'commandé',
+    'Partiel': 'partiel',
+    'Partielle': 'partiel',
+    'Reçu': 'reçu',
+    'Facturé': 'facturé',
+    'Payé': 'payé'
   };
-  const st = statusColors[po.status] || { bg: '#F3F4F6', text: '#4B5563', border: '#E5E7EB' };
+  const statusVariant = statusVariantMap[po.status] || 'commandé';
 
   return (
     <div className="flex flex-col gap-6 pb-8">
@@ -214,42 +218,42 @@ export function PODetail() {
       <div className="px-8 flex flex-col gap-5">
         
         {/* ACTION BAR */}
-        <div className="card p-5 border-l-4 flex items-center justify-between" style={{ borderColor: st.text }}>
+        <div className="card p-5 border-l-4 flex items-center justify-between" style={{ borderColor: 'var(--accent)' }}>
            <div className="flex items-center gap-4">
-             <div className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide" style={{ backgroundColor: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
+             <Badge variant={statusVariant}>
                Statut: {po.status}
-             </div>
+             </Badge>
            </div>
            
            <div className="flex items-center gap-3">
              {/* Transition Actions */}
              {(po.status === 'Commandé' || po.status === 'Partiel') && (
-                <button onClick={() => updateStatus('Reçu')} disabled={updating} className="btn-primary text-sm px-4 bg-emerald-600 hover:bg-emerald-700">
+                <Button variant="primary" size="sm" onClick={() => updateStatus('Reçu')} disabled={updating} aria-label="Marquer ce bon de commande comme reçu">
                   Marquer comme Reçu
-                </button>
+                </Button>
              )}
              {po.status === 'Reçu' && (
-                <button onClick={() => updateStatus('Facturé')} disabled={updating} className="btn-primary text-sm px-4 bg-yellow-600 hover:bg-yellow-700">
+                <Button variant="primary" size="sm" onClick={() => updateStatus('Facturé')} disabled={updating} aria-label="Marquer ce bon de commande comme facturé">
                   Marquer comme Facturé
-                </button>
+                </Button>
              )}
              {po.status === 'Facturé' && (
-                <button onClick={() => updateStatus('Payé')} disabled={updating} className="btn-primary text-sm px-4 bg-indigo-600 hover:bg-indigo-700">
+                <Button variant="primary" size="sm" onClick={() => updateStatus('Payé')} disabled={updating} aria-label="Marquer ce bon de commande comme payé">
                   Marquer comme Payé
-                </button>
+                </Button>
              )}
              
              <div className="h-8 w-px bg-gray-200 mx-2"></div>
 
              {/* Management Actions */}
-             <Link to={`/po/modifier/${po.id}`} className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
+             <Link to={`/po/modifier/${po.id}`} className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition focus-visible:outline-2 focus-visible:outline-offset-2" style={{ outlineColor: 'var(--accent)' }} aria-label="Modifier ce bon de commande">
                <Edit className="h-4 w-4" />
                Modifier
              </Link>
-             <button onClick={handleDeletePO} className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition">
+             <Button variant="danger" size="sm" onClick={handleDeletePO} aria-label="Supprimer ce bon de commande">
                <Trash2 className="h-4 w-4" />
                Supprimer
-             </button>
+             </Button>
            </div>
         </div>
 
@@ -295,36 +299,36 @@ export function PODetail() {
                 <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Articles de la commande</h3>
                 <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-500 font-medium">{items.length} lignes</span>
               </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Qté Commandée</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Qté Reçue</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Prix Unit.</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Description</TableHead>
+                    <TableHead className="text-right">Qté Commandée</TableHead>
+                    <TableHead className="text-right">Qté Reçue</TableHead>
+                    <TableHead className="text-right">Prix Unit.</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {items.map((item: any) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-4 font-medium">{item.description}</td>
-                      <td className="px-5 py-4 text-right text-gray-500">{item.quantity_ordered}</td>
-                      <td className="px-5 py-4 text-right font-medium">
+                    <TableRow key={item.id} className="hover-surface">
+                      <TableCell className="font-medium">{item.description}</TableCell>
+                      <TableCell className="text-right text-[var(--text-secondary)]">{item.quantity_ordered}</TableCell>
+                      <TableCell className="text-right font-medium">
                         <span className={item.quantity_received >= item.quantity_ordered ? "text-emerald-600" : item.quantity_received > 0 ? "text-amber-600" : "text-gray-400"}>
                           {item.quantity_received || 0}
                         </span>
-                      </td>
-                      <td className="px-5 py-4 text-right text-gray-500">
+                      </TableCell>
+                      <TableCell className="text-right text-[var(--text-secondary)]">
                         {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(item.unit_price)}
-                      </td>
-                      <td className="px-5 py-4 text-right font-bold">
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
                         {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(item.quantity_ordered * item.unit_price)}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               <div className="px-5 py-5 bg-gray-50 flex flex-col items-end gap-2 text-sm border-t border-gray-100">
                 <div className="flex gap-8"><span className="text-gray-500">Sous-total :</span><span className="font-medium text-gray-900">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(subtotal)}</span></div>
                 <div className="flex gap-8"><span className="text-gray-500">Total :</span><span className="text-xl font-bold text-indigo-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(subtotal)}</span></div>
@@ -336,7 +340,7 @@ export function PODetail() {
               <h3 className="font-semibold text-base mb-6" style={{ color: 'var(--text-primary)' }}>Historique du Statut</h3>
               <div className="flex flex-col">
                 {logs.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">Aucun historique disponible.</p>
+                  <p className="empty-state">Aucun historique disponible.</p>
                 ) : (
                   logs.map((log: any, i: number) => (
                     <div key={log.id} className="flex gap-4 relative pb-6 last:pb-0">
@@ -350,10 +354,10 @@ export function PODetail() {
                           <span className="text-[10px] text-gray-400 font-medium">{new Date(log.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         {log.status_from && (
-                          <p className="text-[11px] text-gray-500 mt-1">
-                            <span className="px-1.5 py-0.5 rounded bg-gray-100">{log.status_from}</span>
-                            <span className="mx-2">→</span>
-                            <span className="px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: statusColors[log.status_to]?.bg, color: statusColors[log.status_to]?.text }}>{log.status_to}</span>
+                          <p className="text-[11px] text-gray-500 mt-1 flex items-center gap-2">
+                            <Badge variant={statusVariantMap[log.status_from] || 'commandé'}>{log.status_from}</Badge>
+                            <span>→</span>
+                            <Badge variant={statusVariantMap[log.status_to] || 'commandé'}>{log.status_to}</Badge>
                           </p>
                         )}
                         <p className="text-[10px] text-gray-400 mt-1 italic">{log.user_email || 'Système'}</p>
@@ -371,7 +375,7 @@ export function PODetail() {
             <div className="card p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-400">Notes Internes</h3>
-                {savingNote && <Loader2 className="h-3 w-3 animate-spin text-indigo-500" />}
+                {savingNote && <Loader2 className="loading-spinner h-3 w-3" />}
               </div>
               <textarea
                 value={note}

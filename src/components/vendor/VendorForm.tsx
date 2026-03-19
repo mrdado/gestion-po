@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Button } from '../ui/Button';
 
 interface VendorFormProps {
   onClose: () => void;
@@ -66,59 +68,74 @@ export function VendorForm({ onClose, onSuccess, initialData }: VendorFormProps)
           )}
 
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Nom de l'entreprise</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1" htmlFor="vendor-name">Nom de l'entreprise</label>
             <input
               required
+              id="vendor-name"
               type="text"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-offset-2 focus:border-slate-400 transition-all text-sm outline-none"
               placeholder="Ex: Swift Janitorial Inc."
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
+              aria-label="Nom de l'entreprise du fournisseur"
+              style={{ '--tw-ring-color': 'var(--accent)' } as CSSProperties}
             />
           </div>
 
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Contact Principal</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1" htmlFor="contact-name">Contact Principal</label>
               <input
                 required
+                id="contact-name"
                 type="text"
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-offset-2 focus:border-slate-400 transition-all text-sm outline-none"
                 placeholder="Prénom Nom"
                 value={formData.contact_name}
                 onChange={e => setFormData({ ...formData, contact_name: e.target.value })}
+                aria-label="Nom du contact principal du fournisseur"
+                style={{ '--tw-ring-color': 'var(--accent)' } as CSSProperties}
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Email de contact</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1" htmlFor="contact-email">Email de contact</label>
               <input
                 required
+                id="contact-email"
                 type="email"
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-offset-2 focus:border-slate-400 transition-all text-sm outline-none"
                 placeholder="contact@exemple.com"
                 value={formData.contact_email}
                 onChange={e => setFormData({ ...formData, contact_email: e.target.value })}
+                aria-label="Email de contact du fournisseur"
+                style={{ '--tw-ring-color': 'var(--accent)' } as CSSProperties}
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Catégorie</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1" htmlFor="vendor-category">Catégorie</label>
             <input
+              id="vendor-category"
               type="text"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-offset-2 focus:border-slate-400 transition-all text-sm outline-none"
               placeholder="Ex: Maintenance Électrique"
               value={formData.category}
               onChange={e => setFormData({ ...formData, category: e.target.value })}
+              aria-label="Catégorie du fournisseur"
+              style={{ '--tw-ring-color': 'var(--accent)' } as CSSProperties}
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Statut</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1" htmlFor="vendor-status">Statut</label>
             <select
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm outline-none appearance-none"
+              id="vendor-status"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-offset-2 focus:border-slate-400 transition-all text-sm outline-none appearance-none"
               value={formData.status}
               onChange={e => setFormData({ ...formData, status: e.target.value })}
+              aria-label="Statut du fournisseur"
+              style={{ '--tw-ring-color': 'var(--accent)' } as CSSProperties}
             >
               <option value="actif">Actif</option>
               <option value="integration">En intégration</option>
@@ -126,21 +143,23 @@ export function VendorForm({ onClose, onSuccess, initialData }: VendorFormProps)
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-3">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors"
+              aria-label="Annuler"
             >
               Annuler
-            </button>
-            <button
+            </Button>
+            <Button
               disabled={loading}
               type="submit"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50"
+              variant="primary"
+              aria-label={initialData ? 'Mettre à jour le fournisseur' : 'Enregistrer le fournisseur'}
             >
-              {loading && <Loader2 size={16} className="animate-spin" />}
+              {loading && <Loader2 size={16} className="loading-spinner" />}
               {initialData ? 'Mettre à jour' : 'Enregistrer'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -43,6 +43,15 @@
     --surface-hover: #F9FAFB;
     /* Sidebar active background */
     --sidebar-bg: #2E3147;
+    /* Vendor KPI icon backgrounds (Vendor page) */
+    --kpi-emerald-bg: #ECFDF5;
+    --kpi-emerald-color: #059669;
+    --kpi-amber-bg: #FFFBEB;
+    --kpi-amber-color: #D97706;
+    --kpi-blue-bg: #EFF6FF;
+    --kpi-blue-color: #2563EB;
+    /* Loading state */
+    --loading-color: inherit;
 
     /* Legacy vars for existing component classes */
     --background: var(--bg);
@@ -118,6 +127,28 @@
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors;
   }
 
+  /* Button variants using design tokens */
+  .btn-primary-token {
+    background: var(--btn-primary);
+    color: #FFFFFF;
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    outline-color: var(--accent);
+  }
+  .btn-primary-token:hover:not(:disabled) {
+    background: var(--btn-primary-hover);
+  }
+  .btn-primary-token:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* Status badge variants */
+  .badge-commandé { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-partiel { background: #FFF7ED; color: #D97706; border: 1px solid #FED7AA; @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-partielle { background: #FFF7ED; color: #D97706; border: 1px solid #FED7AA; @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-reçu { background: #E8F0EC; color: #16A34A; border: 1px solid #B5D5C5; @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-facturé { background: #FEF3E2; color: #D97706; border: 1px solid #FDE68A; @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-payé { background: #F3E8FF; color: #9333EA; border: 1px solid #E9D5FF; @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+
   /* Sidebar nav item hover transition */
   .nav-item {
     @apply transition-colors duration-200;
@@ -144,5 +175,26 @@
   /* Smooth chart animations */
   .chart-container {
     @apply transition-all duration-300;
+  }
+
+  /* Loading spinner - consistent across app */
+  .loading-spinner {
+    @apply animate-spin;
+    color: var(--accent);
+  }
+
+  /* Hover surface state - consistent across rows, items, cards */
+  .hover-surface {
+    @apply hover:bg-[var(--surface-hover)] transition-colors duration-200;
+  }
+
+  /* Empty state message styling */
+  .empty-state {
+    @apply text-[var(--text-tertiary)] italic text-sm;
+  }
+
+  /* Loading state message styling */
+  .loading-message {
+    @apply text-[var(--text-secondary)] font-medium;
   }
 }

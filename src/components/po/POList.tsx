@@ -3,14 +3,15 @@ import { MoreHorizontal, Plus, Trash2, Edit } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { Badge } from '../ui/Badge';
 
-const statusMap: Record<string, { label: string; cls: string }> = {
-  'Commandé':        { label: 'COMMANDÉ',       cls: 'bg-blue-50 text-blue-700 border border-blue-200' },
-  'Partiel':         { label: 'PARTIEL',        cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
-  'Partielle':       { label: 'PARTIEL',        cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
-  'Reçu':            { label: 'REÇU',           cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
-  'Facturé':         { label: 'FACTURÉ',        cls: 'bg-purple-50 text-purple-700 border border-purple-200' },
-  'Payé':            { label: 'PAYÉ',           cls: 'bg-emerald-100 text-emerald-800 border border-emerald-300' },
+const statusMap: Record<string, { label: string; variant: 'commandé' | 'partiel' | 'reçu' | 'facturé' | 'payé' }> = {
+  'Commandé':        { label: 'COMMANDÉ',       variant: 'commandé' },
+  'Partiel':         { label: 'PARTIEL',        variant: 'partiel' },
+  'Partielle':       { label: 'PARTIEL',        variant: 'partiel' },
+  'Reçu':            { label: 'REÇU',           variant: 'reçu' },
+  'Facturé':         { label: 'FACTURÉ',        variant: 'facturé' },
+  'Payé':            { label: 'PAYÉ',           variant: 'payé' },
 };
 
 export function POList() {
@@ -79,7 +80,7 @@ export function POList() {
 
   // Helper to safely map old mock statuses or db statuses
   const getStatusDisplay = (status: string) => {
-    return statusMap[status] || { label: status.toUpperCase(), cls: 'bg-gray-100 text-gray-700 border border-gray-200' };
+    return statusMap[status] || { label: status.toUpperCase(), variant: 'secondary' as const };
   };
 
   // Filter Logic
@@ -118,11 +119,15 @@ export function POList() {
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status === 'ALL' ? '' : status)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  aria-label={`Filtrer par statut ${status}`}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
                     (statusFilter === status || (statusFilter === '' && status === 'ALL'))
                       ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
                       : 'text-gray-500 hover:text-gray-900'
                   }`}
+                  style={{
+                    outlineColor: 'var(--accent)'
+                  }}
                 >
                   {status}
                 </button>
@@ -131,11 +136,14 @@ export function POList() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Link to a hypothetical 'create' route or trigger a modal */}
-            <Link to="/bons-de-commande/nouveau" className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+            <button
+              onClick={() => navigate('/bons-de-commande/nouveau')}
+              className="btn-primary-token"
+              aria-label="Créer un nouveau bon de commande"
+            >
               <Plus className="h-4 w-4" />
               Nouveau BC
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -162,9 +170,9 @@ export function POList() {
 
           {/* Rows */}
           {loading ? (
-            <div className="p-8 text-center text-sm text-gray-500">Chargement des bons de commande...</div>
+            <div className="p-8 text-center loading-message">Chargement des bons de commande...</div>
           ) : filteredPOs.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-500">Aucun bon de commande trouvé.</div>
+            <div className="p-8 text-center empty-state">Aucun bon de commande trouvé.</div>
           ) : (
             filteredPOs.map((po: any) => {
               const st = getStatusDisplay(po.status);
@@ -176,7 +184,7 @@ export function POList() {
               return (
                 <div
                   key={po.id}
-                  className="grid items-center px-6 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors relative"
+                  className="grid items-center px-6 py-4 border-b border-gray-50 last:border-0 hover-surface relative"
                   style={{ gridTemplateColumns: '140px 1fr 140px 120px 140px 140px 48px' }}
                 >
                   <Link to={`/po/${po.id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
@@ -200,11 +208,11 @@ export function POList() {
                     {formatCurrency(po.total_amount, po.currency)}
                   </span>
 
-                  <div>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${st.cls}`}>
+                   <div>
+                    <Badge variant={st.variant}>
                       {st.label}
-                    </span>
-                  </div>
+                    </Badge>
+                   </div>
 
                   <div className="relative flex justify-end">
                     <button 

@@ -1,25 +1,29 @@
 import React from 'react';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info' | 'delivered' | 'processing' | 'shipped' | 'cancelled' | 'pending' | 'active' | 'onboarding';
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info' 
+    | 'commandé' | 'partiel' | 'reçu' | 'facturé' | 'payé'
+    | 'actif' | 'integration';
 }
 
 export function Badge({ className = '', variant = 'default', children, ...props }: BadgeProps) {
   const variants = {
-    default: 'bg-primary/10 text-primary border border-primary/20',
-    secondary: 'bg-surface-secondary text-text-secondary border border-border',
-    destructive: 'bg-destructive/10 text-destructive border border-destructive/20',
-    outline: 'border border-border text-text-primary bg-surface',
-    success: 'bg-success/10 text-success border border-success/20',
-    warning: 'bg-warning/10 text-warning border border-warning/20',
-    info: 'bg-info/10 text-info border border-info/20',
-    delivered: 'bg-green-100 text-green-800',
-    processing: 'bg-amber-100 text-amber-800',
-    shipped: 'bg-blue-100 text-blue-800',
-    cancelled: 'bg-red-100 text-red-800',
-    pending: 'bg-amber-100 text-amber-800',
-    active: 'bg-green-100 text-green-800',
-    onboarding: 'bg-amber-100 text-amber-800',
+    default: 'bg-[var(--info)]/10 text-[var(--info)] border border-[var(--info)]/20',
+    secondary: 'bg-[var(--surface-alt)] text-[var(--text-secondary)] border border-[var(--color-border)]',
+    destructive: 'bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20',
+    outline: 'border border-[var(--color-border)] text-[var(--text-primary)] bg-[var(--surface)]',
+    success: 'bg-[var(--success)]/10 text-[var(--success)] border border-[var(--success)]/20',
+    warning: 'bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20',
+    info: 'bg-[var(--info)]/10 text-[var(--info)] border border-[var(--info)]/20',
+    // PO Status variants
+    commandé: 'bg-blue-50 text-blue-700 border border-blue-200',
+    partiel: 'bg-amber-50 text-amber-700 border border-amber-200',
+    reçu: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    facturé: 'bg-purple-50 text-purple-700 border border-purple-200',
+    payé: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+    // Vendor Status variants
+    actif: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    integration: 'bg-amber-50 text-amber-700 border border-amber-200',
   };
 
   return (

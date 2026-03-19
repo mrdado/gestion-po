@@ -13,21 +13,26 @@ import { supabase } from '../../lib/supabase';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6'];
-const STATUS_COLORS: any = {
-  'Commandé': '#3B82F6',
-  'Partiel': '#F59E0B',
-  'Reçu': '#10B981',
-  'Facturé': '#8B5CF6',
-  'Payé': '#14B8A6'
+// Design token colors from CSS variables
+const getStatusColor = (status: string): string => {
+  const statusColorMap: Record<string, string> = {
+    'Commandé': '#3B82F6',  // Blue (info)
+    'Partiel': '#F59E0B',   // Amber (warning)
+    'Reçu': '#10B981',      // Emerald (success)
+    'Facturé': '#8B5CF6',   // Purple
+    'Payé': '#14B8A6'       // Teal
+  };
+  return statusColorMap[status] || '#6B7280';
 };
+
+const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6'];
 
 function KpiCard({ title, value, unit, change, positive, icon: Icon, color }: {
   title: string; value: string | number; unit: string; change: string; positive: boolean; icon: any; color: string;
 }) {
   return (
-    <div className="card p-6 relative overflow-hidden group hover:shadow-md transition-shadow">
-      <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 opacity-[0.03] rotate-12 transition-transform group-hover:scale-110`} style={{ color }}>
+    <div className="card p-6 relative overflow-hidden group hover:shadow-md transition-shadow" role="region" aria-label={`${title}: ${value} ${unit}`}>
+      <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 opacity-[0.03] rotate-12 transition-transform group-hover:scale-110`} style={{ color }} aria-hidden="true">
         <Icon size={96} />
       </div>
       <div className="relative z-10">
@@ -208,8 +213,8 @@ export function AnalyticsDashboard() {
   if (loading && data.pos.length === 0) {
     return (
       <div className="flex h-[600px] flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
-        <p className="text-slate-500 font-medium animate-pulse">Chargement de vos analyses...</p>
+        <Loader2 className="loading-spinner h-10 w-10" />
+        <p className="loading-message animate-pulse">Chargement de vos analyses...</p>
       </div>
     );
   }
@@ -227,8 +232,10 @@ export function AnalyticsDashboard() {
             <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter">Mise à jour directe</span>
             <button 
               onClick={fetchData} 
-              className="p-2 bg-white text-slate-600 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all hover:rotate-180 duration-500 shadow-sm"
+              className="p-2 bg-white text-slate-600 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all hover:rotate-180 duration-500 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+              style={{ outlineColor: 'var(--accent)' }}
               title="Actualiser les données"
+              aria-label="Actualiser les données analytiques"
             >
               <Loader2 size={18} className={loading ? 'animate-spin' : ''} />
             </button>
@@ -333,7 +340,7 @@ export function AnalyticsDashboard() {
                       className="h-full transition-all duration-1000 ease-out group-hover:brightness-110"
                       style={{ 
                         width: `${Math.max(4, (item.value / Math.max(...stats.statusFunnel.map(f => f.value), 1)) * 100)}%`,
-                        backgroundColor: STATUS_COLORS[item.name] || COLORS[index % COLORS.length]
+                        backgroundColor: getStatusColor(item.name) || COLORS[index % COLORS.length]
                       }}
                     />
                   </div>
@@ -369,7 +376,7 @@ export function AnalyticsDashboard() {
             </h3>
             <div className="space-y-4">
               {stats.topItems.map((item, idx) => (
-                <div key={item.name} className="flex items-center gap-3">
+                <div key={item.name} className="flex items-center gap-3 hover-surface p-2 rounded-lg">
                   <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-100 italic">
                     #{idx + 1}
                   </div>
@@ -383,9 +390,9 @@ export function AnalyticsDashboard() {
                 </div>
               ))}
               {stats.topItems.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-40 text-slate-400 gap-2">
-                  <AlertTriangle size={24} />
-                  <p className="text-xs italic">Aucune donnée d'article trouvée</p>
+                <div className="flex flex-col items-center justify-center h-40 gap-2">
+                  <AlertTriangle size={24} style={{ color: 'var(--text-tertiary)' }} />
+                  <p className="empty-state">Aucune donnée d'article trouvée</p>
                 </div>
               )}
             </div>
@@ -399,7 +406,7 @@ export function AnalyticsDashboard() {
             </h3>
             <div className="space-y-4">
               {stats.vendorPerformance.map((v) => (
-                <div key={v.name} className="flex items-center gap-4">
+                <div key={v.name} className="flex items-center gap-4 hover-surface p-2 rounded-lg">
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-xs font-bold text-slate-700">{v.name}</span>
