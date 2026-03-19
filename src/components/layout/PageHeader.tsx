@@ -54,6 +54,7 @@ export function PageHeader({
             <input
               type="text"
               placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
               value={searchValue}
               onChange={(e) => onSearchChange?.(e.target.value)}
               className="bg-transparent outline-none w-44 text-sm"
@@ -66,15 +67,21 @@ export function PageHeader({
         )}
         {/* Chat */}
         <button
-          className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors hover:bg-gray-100"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          aria-label="Ouvrir les messages"
+          className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', outlineColor: 'var(--accent)' }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--surface)'}
         >
           <MessageSquare className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
         </button>
         {/* Bell */}
         <button
-          className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors hover:bg-gray-100"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          aria-label="Afficher les notifications"
+          className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', outlineColor: 'var(--accent)' }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--surface)'}
         >
           <Bell className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
         </button>

@@ -52,12 +52,12 @@ export function Sidebar({ navItems, currentPath }: SidebarProps) {
               key={path}
               to={path}
               title={name}
-              className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors"
-              style={{ backgroundColor: isActive ? '#2E3147' : 'transparent' }}
-              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(0,0,0,0.05)'; }}
-              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+              aria-current={isActive ? 'page' : undefined}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center nav-item group ${
+                isActive ? 'bg-sidebar' : 'hover:bg-black/5'
+              }`}
             >
-              <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+              <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
             </Link>
           );
         })}
@@ -67,21 +67,25 @@ export function Sidebar({ navItems, currentPath }: SidebarProps) {
       <div className="flex flex-col items-center gap-3 mt-1">
         <Link
           to="/parametres"
+          aria-label="Paramètres"
           title="Paramètres"
-          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-black/5"
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 nav-item"
         >
           <Settings className="h-5 w-5 text-gray-400" />
         </Link>
         <button
           onClick={() => signOut()}
+          aria-label="Se déconnecter"
           title="Se déconnecter"
-          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-red-50 hover:text-red-600 text-gray-400"
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-red-50 hover:text-red-600 text-gray-400 focus-visible:ring-2 focus-visible:ring-offset-2 nav-item"
         >
           <LogOut className="h-5 w-5" />
         </button>
         <div 
           className="w-10 h-10 rounded-full flex items-center justify-center select-none"
           title={profile?.email || 'Utilisateur'}
+          role="img"
+          aria-label={`Profil utilisateur: ${profile?.email || 'Utilisateur'}`}
           style={{ backgroundColor: profile?.role === 'admin' ? '#7C3AED' : '#FBBF24' }}
         >
           <span className="text-white text-xs font-bold">{getInitials(profile?.email)}</span>
