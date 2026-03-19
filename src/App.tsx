@@ -5,6 +5,7 @@ import { PODetail } from './components/po/PODetail';
 import { ReceptionList } from './components/receiving/ReceptionList';
 import { ReceivingForm } from './components/receiving/ReceivingForm';
 import { VendorView } from './components/vendor/VendorView';
+import { VendorDetail } from './components/vendor/VendorDetail';
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
 import { POEntry } from './components/po-entry/POEntry';
 import { Sidebar } from './components/layout/Sidebar';
@@ -50,6 +51,7 @@ function AppLayout() {
             <Route path="/receptions"        element={<ReceptionList />} />
             <Route path="/reception/:id"     element={<ReceivingForm />} />
             <Route path="/fournisseurs"      element={<VendorView />} />
+            <Route path="/fournisseur/:id"   element={<VendorDetail />} />
             <Route path="/analytique"        element={<AnalyticsDashboard />} />
           </Route>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { TrendingUp, Loader2, Search, Plus, Mail, Package, Users, Award, Trash2 } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { supabase } from '../../lib/supabase';
@@ -208,11 +209,13 @@ export function VendorView() {
                        <tr key={v.id} className="group hover-surface">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-xs shadow-sm shadow-emerald-100">
+                            <Link to={`/fournisseur/${v.id}`} className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-xs shadow-sm shadow-emerald-100 hover:bg-emerald-200 transition-colors">
                               {initials}
-                            </div>
+                            </Link>
                             <div>
-                              <p className="text-sm font-bold text-slate-800">{v.name}</p>
+                              <Link to={`/fournisseur/${v.id}`} className="text-sm font-bold text-slate-800 hover:text-emerald-600 transition-colors">
+                                {v.name}
+                              </Link>
                               <p className="text-[10px] font-medium text-slate-400">ID: {v.id.slice(0, 8)}</p>
                             </div>
                           </div>
