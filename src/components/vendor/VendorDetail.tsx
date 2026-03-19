@@ -14,6 +14,15 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+const statusVariantMap: Record<string, 'commandé' | 'partiel' | 'reçu' | 'facturé' | 'payé'> = {
+  'Commandé': 'commandé',
+  'Partiel': 'partiel',
+  'Partielle': 'partiel',
+  'Reçu': 'reçu',
+  'Facturé': 'facturé',
+  'Payé': 'payé'
+};
+
 export function VendorDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -97,7 +106,7 @@ export function VendorDetail() {
   if (loading) {
     return (
       <div className="flex h-[600px] flex-col items-center justify-center gap-4">
-        <Loader2 className="loading-spinner h-10 w-10 text-emerald-600" />
+        <Loader2 className="loading-spinner h-10 w-10" />
         <p className="loading-message">Chargement des détails du fournisseur...</p>
       </div>
     );
@@ -130,7 +139,7 @@ export function VendorDetail() {
       <div className="px-8 flex flex-col gap-8">
         {/* Header Info Card */}
         <div className="card p-8 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full -mr-32 -mt-32 blur-3xl transition-colors" style={{ backgroundColor: 'var(--accent)', opacity: 0.05 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.1')} onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.05')} />
           
           <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
             <div className="w-24 h-24 rounded-3xl bg-emerald-600 text-white flex items-center justify-center text-4xl font-black shadow-2xl shadow-emerald-600/20 uppercase">
@@ -184,9 +193,9 @@ export function VendorDetail() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="card p-6 border-l-4 border-emerald-500 hover-surface">
+          <div className="card p-6 border-l-4 hover-surface hover:scale-[1.01] transition-all duration-200 cursor-default" style={{ borderColor: 'var(--kpi-emerald-color)' }}>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-emerald-bg)', color: 'var(--kpi-emerald-color)' }}>
                 <DollarSign size={24} />
               </div>
               <div>
@@ -198,9 +207,9 @@ export function VendorDetail() {
             </div>
           </div>
 
-          <div className="card p-6 border-l-4 border-blue-500 hover-surface">
+          <div className="card p-6 border-l-4 hover-surface hover:scale-[1.01] transition-all duration-200 cursor-default" style={{ borderColor: 'var(--kpi-blue-color)' }}>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-blue-bg)', color: 'var(--kpi-blue-color)' }}>
                 <ShoppingBag size={24} />
               </div>
               <div>
@@ -210,9 +219,9 @@ export function VendorDetail() {
             </div>
           </div>
 
-          <div className="card p-6 border-l-4 border-amber-500 hover-surface">
+          <div className="card p-6 border-l-4 hover-surface hover:scale-[1.01] transition-all duration-200 cursor-default" style={{ borderColor: 'var(--kpi-amber-color)' }}>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-amber-bg)', color: 'var(--kpi-amber-color)' }}>
                 <Clock size={24} />
               </div>
               <div>
@@ -222,9 +231,9 @@ export function VendorDetail() {
             </div>
           </div>
 
-          <div className="card p-6 border-l-4 border-purple-500 hover-surface">
+          <div className="card p-6 border-l-4 hover-surface hover:scale-[1.01] transition-all duration-200 cursor-default" style={{ borderColor: 'var(--kpi-purple-color)' }}>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--kpi-purple-bg)', color: 'var(--kpi-purple-color)' }}>
                 <BarChart3 size={24} />
               </div>
               <div>
@@ -260,7 +269,11 @@ export function VendorDetail() {
             <TableBody>
               {pos.map((po) => (
                 <TableRow key={po.id} className="hover-surface">
-                  <TableCell className="font-bold text-slate-700">{po.po_number}</TableCell>
+                  <TableCell className="font-bold text-slate-700">
+                    <Link to={`/po/${po.id}`} className="hover:text-emerald-600 transition-colors">
+                      {po.po_number}
+                    </Link>
+                  </TableCell>
                   <TableCell className="text-slate-500">
                     <div className="flex items-center gap-2">
                        <Calendar size={14} className="text-slate-300" />
@@ -269,11 +282,7 @@ export function VendorDetail() {
                   </TableCell>
                   <TableCell className="font-medium text-slate-600">{po.project_number || '-'}</TableCell>
                   <TableCell>
-                    <Badge variant={
-                      po.status === 'Payé' ? 'payé' : 
-                      po.status === 'Reçu' ? 'reçu' : 
-                      po.status === 'Commandé' ? 'commandé' : 'partiel'
-                    }>
+                    <Badge variant={statusVariantMap[po.status] || 'commandé'}>
                       {po.status}
                     </Badge>
                   </TableCell>
@@ -289,8 +298,8 @@ export function VendorDetail() {
               ))}
               {pos.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-slate-400 italic">
-                    Aucune commande trouvée pour ce fournisseur.
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <p className="empty-state">Aucune commande trouvée pour ce fournisseur.</p>
                   </TableCell>
                 </TableRow>
               )}

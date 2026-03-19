@@ -50,6 +50,8 @@
     --kpi-amber-color: #D97706;
     --kpi-blue-bg: #EFF6FF;
     --kpi-blue-color: #2563EB;
+    --kpi-purple-bg: #F3E8FF;
+    --kpi-purple-color: #9333EA;
     /* Loading state */
     --loading-color: inherit;
 
