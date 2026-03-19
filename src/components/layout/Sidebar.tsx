@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Settings, Move } from 'lucide-react';
+import { Settings, Move, LogOut } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
   name: string;
@@ -13,6 +14,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ navItems, currentPath }: SidebarProps) {
+  const { profile, signOut } = useAuth();
+  
+  // Extract initials from email (e.g., john.doe@... -> JD)
+  const getInitials = (email?: string) => {
+    if (!email) return 'U';
+    const parts = email.split('@')[0].split('.');
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
+  };
+
   return (
     <div
       className="flex flex-col items-center py-5 gap-3 shrink-0"
@@ -50,7 +63,7 @@ export function Sidebar({ navItems, currentPath }: SidebarProps) {
         })}
       </div>
 
-      {/* Bottom: settings + avatar — outside the white card */}
+      {/* Bottom: settings + logout + avatar */}
       <div className="flex flex-col items-center gap-3 mt-1">
         <Link
           to="/parametres"
@@ -59,8 +72,19 @@ export function Sidebar({ navItems, currentPath }: SidebarProps) {
         >
           <Settings className="h-5 w-5 text-gray-400" />
         </Link>
-        <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center cursor-pointer">
-          <span className="text-white text-xs font-bold">JD</span>
+        <button
+          onClick={() => signOut()}
+          title="Se déconnecter"
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-red-50 hover:text-red-600 text-gray-400"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
+        <div 
+          className="w-10 h-10 rounded-full flex items-center justify-center select-none"
+          title={profile?.email || 'Utilisateur'}
+          style={{ backgroundColor: profile?.role === 'admin' ? '#7C3AED' : '#FBBF24' }}
+        >
+          <span className="text-white text-xs font-bold">{getInitials(profile?.email)}</span>
         </div>
       </div>
     </div>

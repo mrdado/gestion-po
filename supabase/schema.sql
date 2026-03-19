@@ -10,7 +10,10 @@ commit;
 create table vendors (
   id uuid primary key default uuid_generate_v4(),
   name text not null,
+  contact_name text,
   contact_email text,
+  category text,
+  status text default 'actif' check (status in ('actif', 'integration')),
   avg_lead_time_days numeric default 0,
   performance_score numeric default 100,
   created_at timestamp with time zone default now()
@@ -21,10 +24,13 @@ create table purchase_orders (
   id uuid primary key default uuid_generate_v4(),
   po_number text unique not null,
   vendor_id uuid references vendors(id),
-  status text not null check (status in ('En préparation', 'En transit', 'Reçu', 'Facturé', 'Payé')),
+  status text not null check (status in ('Commandé', 'Partiel', 'Reçu', 'Facturé', 'Payé')),
   total_amount numeric not null,
   currency text default 'EUR',
   expected_delivery_date date,
+  internal_notes text,
+  project_number text,
+  project_type text check (project_type in ('RDI', 'FG', 'Comm')),
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
@@ -62,4 +68,14 @@ create table notifications (
 );
 
 -- Add tables to realtime publication
-alter publication supabase_realtime add table purchase_orders, po_items, notifications;
+alter publication supabase_realtime add table purchase_orders, po_items, notifications, vendors;
+
+-- RPC for marking all items received
+create or replace function mark_all_items_received(p_po_id uuid)
+returns void as $$
+begin
+  update po_items
+  set quantity_received = quantity_ordered
+  where po_id = p_po_id;
+end;
+$$ language plpgsql;

@@ -6,6 +6,9 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   searchPlaceholder?: string;
+  hideSearch?: boolean;
+  searchValue?: string;
+  onSearchChange?: (val: string) => void;
   backLink?: { label: string; to: string };
   actions?: ReactNode;
 }
@@ -14,6 +17,9 @@ export function PageHeader({
   title,
   subtitle,
   searchPlaceholder = 'Rechercher...',
+  hideSearch = false,
+  searchValue = '',
+  onSearchChange,
   backLink,
   actions,
 }: PageHeaderProps) {
@@ -39,21 +45,25 @@ export function PageHeader({
       <div className="flex items-center gap-3 mt-1">
         {actions}
         {/* Search */}
-        <div
-          className="flex items-center gap-2 px-4 py-2 rounded-full border text-sm"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-        >
-          <Search className="h-4 w-4" style={{ color: 'var(--text-tertiary)' }} />
-          <input
-            type="text"
-            placeholder={searchPlaceholder}
-            className="bg-transparent outline-none w-44 text-sm"
-            style={{ color: 'var(--text-primary)' }}
-          />
-          <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: 'var(--btn-primary)' }}>
-            <Search className="h-3 w-3 text-white" />
+        {!hideSearch && (
+          <div
+            className="flex items-center gap-2 px-4 py-2 rounded-full border text-sm"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          >
+            <Search className="h-4 w-4" style={{ color: 'var(--text-tertiary)' }} />
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              className="bg-transparent outline-none w-44 text-sm"
+              style={{ color: 'var(--text-primary)' }}
+            />
+            <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: 'var(--btn-primary)' }}>
+              <Search className="h-3 w-3 text-white" />
+            </div>
           </div>
-        </div>
+        )}
         {/* Chat */}
         <button
           className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors hover:bg-gray-100"

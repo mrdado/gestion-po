@@ -7,7 +7,7 @@ export type Vendor = {
   created_at: string;
 };
 
-export type POStatus = 'En préparation' | 'En transit' | 'Reçu' | 'Facturé' | 'Payé';
+export type POStatus = 'Commandé' | 'Reçu' | 'Facturé' | 'Payé';
 
 export type PurchaseOrder = {
   id: string;
@@ -17,6 +17,7 @@ export type PurchaseOrder = {
   total_amount: number;
   currency: string;
   expected_delivery_date: string | null;
+  internal_notes: string | null;
   created_at: string;
   updated_at: string;
   vendors?: Vendor; // Joined data
