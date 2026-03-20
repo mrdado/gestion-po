@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MoreHorizontal, Plus, Trash2, Edit } from 'lucide-react';
+import { MoreHorizontal, Plus, Trash2, Edit, Upload } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Badge } from '../ui/Badge';
+import { DataImporter } from './DataImporter';
 
 const statusMap: Record<string, { label: string; variant: 'commandé' | 'partiel' | 'reçu' | 'facturé' | 'payé' }> = {
   'Commandé':        { label: 'COMMANDÉ',       variant: 'commandé' },
@@ -21,6 +22,7 @@ export function POList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [showImporter, setShowImporter] = useState(false);
 
   useEffect(() => {
     fetchPOs();
@@ -88,7 +90,8 @@ export function POList() {
     const matchesSearch = 
       po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       po.vendor?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.project_number?.toLowerCase().includes(searchQuery.toLowerCase());
+      po.project_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      po.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Exact match for status filter if defined, or true if 'ALL' or empty
     const matchesStatus = statusFilter === '' || statusFilter === 'ALL' ? true : po.status === statusFilter;
@@ -107,6 +110,12 @@ export function POList() {
       />
 
       <div className="px-8 flex flex-col gap-4">
+        {showImporter && (
+          <DataImporter 
+            onClose={() => setShowImporter(false)} 
+            onSuccess={fetchPOs} 
+          />
+        )}
         
         {/* Filters & Actions Bar */}
         <div className="flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -137,6 +146,15 @@ export function POList() {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowImporter(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-black bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all shadow-sm"
+              aria-label="Importer des données depuis CSV"
+            >
+              <Upload className="h-4 w-4" />
+              Importer CSV
+            </button>
+
+            <button
               onClick={() => navigate('/bons-de-commande/nouveau')}
               className="btn-primary-token"
               aria-label="Créer un nouveau bon de commande"
@@ -148,8 +166,8 @@ export function POList() {
         </div>
 
         {/* Data Table */}
-        <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="card">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 overflow-hidden">
             <div className="flex items-center gap-3">
               <h3 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Toutes les Commandes</h3>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100" style={{ color: 'var(--text-secondary)' }}>
@@ -159,11 +177,11 @@ export function POList() {
           </div>
 
           {/* Column headers */}
-          <div className="grid px-6 py-3 border-b border-gray-50" style={{
-            gridTemplateColumns: '140px 1fr 140px 120px 140px 140px 48px',
+          <div className="grid px-6 py-3 border-b border-gray-50 overflow-hidden" style={{
+            gridTemplateColumns: '140px 1fr 120px 110px 120px 120px 120px 48px',
             backgroundColor: 'var(--surface)',
           }}>
-            {['N° BC', 'FOURNISSEUR', 'AFFAIRE', 'DATE PRÉVUE', 'MONTANT', 'STATUT', ''].map(h => (
+            {['N° BC', 'FOURNISSEUR', 'AFFAIRE', 'DATE PRÉVUE', 'N° FACTURE', 'MONTANT', 'STATUT', ''].map(h => (
               <span key={h} className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>{h}</span>
             ))}
           </div>
@@ -185,7 +203,7 @@ export function POList() {
                 <div
                   key={po.id}
                   className="grid items-center px-6 py-4 border-b border-gray-50 last:border-0 hover-surface relative"
-                  style={{ gridTemplateColumns: '140px 1fr 140px 120px 140px 140px 48px' }}
+                  style={{ gridTemplateColumns: '140px 1fr 120px 110px 120px 120px 120px 48px' }}
                 >
                   <Link to={`/po/${po.id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
                     {po.po_number}
@@ -209,6 +227,8 @@ export function POList() {
                   </div>
 
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{dateStr}</span>
+
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{po.invoice_number || '-'}</span>
 
                   <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {formatCurrency(po.total_amount, po.currency)}

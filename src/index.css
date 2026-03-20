@@ -35,6 +35,11 @@
     /* Trend colors (WCAG AA compliant) */
     --trend-up: #059669;
     --trend-down: #DC2626;
+    /* Status badge colors - Payé (settled/complete) */
+    --status-paye-bg: #F8FAFC;
+    --status-paye-text: #334155;
+    --status-paye-border: #E2E8F0;
+    --status-paye-chart: #64748B;
     /* Icon background colors */
     --icon-bg-open: #E8F2EC;
     --icon-bg-pending: #EDE8F5;

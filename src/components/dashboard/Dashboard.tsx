@@ -143,7 +143,7 @@ export function Dashboard() {
       'Commandé': '#A0C4FF',
       'Reçu': '#B5D5C5',
       'Facturé': '#D4C5B0',
-      'Payé': '#C8D5E0'
+      'Payé': '#CBD5E1'  // Slate (consistent with badge color)
     };
 
     return statuses.map(s => ({
@@ -208,6 +208,8 @@ export function Dashboard() {
     return history;
   }, [timeframe, allPOsForCalculations]);
 
+  const displayedPOs = useMemo(() => allPOsForCalculations.slice(0, 5), [allPOsForCalculations]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -223,7 +225,7 @@ export function Dashboard() {
       <PageHeader
         title={`Bonjour, ${profile?.email?.split('@')[0] || 'Utilisateur'} !`}
         subtitle="Explorez les informations et l'activité de vos bons de commande"
-        searchPlaceholder="Rechercher..."
+        hideSearch={true}
       />
 
       <div className="px-8 flex flex-col gap-6">
@@ -319,13 +321,13 @@ export function Dashboard() {
               )}
             </div>
             <div className="flex flex-col gap-3">
-              {allPOsForCalculations.length === 0 ? (
+              {displayedPOs.length === 0 ? (
                 <div className="py-8 text-center">
                   <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Aucune commande trouvée.</p>
-                  <p className="text-xs mt-1 empty-state">Commencez par créer votre premier bon de commande.</p>
+                  <p className="text-xs mt-1 empty-state">Commencez par créer votre premier bon de commande ou modifiez votre recherche.</p>
                 </div>
               ) : (
-                allPOsForCalculations.slice(0, 5).map((po) => (
+                displayedPOs.map((po) => (
                   <Link to={`/po/${po.id}`} key={po.id} className="flex items-center gap-3 p-3 rounded-lg hover-surface" style={{ backgroundColor: 'var(--surface-alt)', cursor: 'pointer' }}>
                     <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center bg-white shadow-sm border" style={{ borderColor: 'var(--color-border)' }}>
                        <FileText className="h-4 w-4" style={{ color: 'var(--text-tertiary)' }} />

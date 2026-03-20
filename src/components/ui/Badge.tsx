@@ -20,7 +20,7 @@ export function Badge({ className = '', variant = 'default', children, ...props 
     partiel: 'bg-amber-50 text-amber-700 border border-amber-200',
     reçu: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
     facturé: 'bg-purple-50 text-purple-700 border border-purple-200',
-    payé: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+    payé: 'bg-slate-50 text-slate-700 border border-slate-200',
     // Vendor Status variants
     actif: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
     integration: 'bg-amber-50 text-amber-700 border border-amber-200',

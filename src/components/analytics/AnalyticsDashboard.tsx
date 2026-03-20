@@ -20,12 +20,12 @@ const getStatusColor = (status: string): string => {
     'Partiel': '#F59E0B',   // Amber (warning)
     'Reçu': '#10B981',      // Emerald (success)
     'Facturé': '#8B5CF6',   // Purple
-    'Payé': '#14B8A6'       // Teal
+    'Payé': '#64748B'       // Slate (settled/complete)
   };
   return statusColorMap[status] || '#6B7280';
 };
 
-const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6'];
+const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6', '#64748B'];
 
 function KpiCard({ title, value, unit, change, positive, icon: Icon, color }: {
   title: string; value: string | number; unit: string; change: string; positive: boolean; icon: any; color: string;
@@ -226,7 +226,7 @@ export function AnalyticsDashboard() {
       <PageHeader
         title="Tableau de Bord KPI"
         subtitle="Analyses stratégiques et performance opérationnelle"
-        searchPlaceholder="Filtrer les stats..."
+        hideSearch={true}
         actions={
           <div className="flex items-center gap-3">
             <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter">Mise à jour directe</span>

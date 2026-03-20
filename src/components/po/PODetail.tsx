@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Clock, Trash2, Edit, Save, Loader2, FileText } from 'lucide-react';
+import { Clock, Trash2, Edit, Save, Loader2, FileText, X } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -22,6 +22,10 @@ export function PODetail() {
   // Note state
   const [note, setNote] = useState('');
   const [savingNote, setSavingNote] = useState(false);
+
+  // Invoice state
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [invoiceTempNumber, setInvoiceTempNumber] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -93,15 +97,21 @@ export function PODetail() {
     }
   };
 
-  const updateStatus = async (newStatus: string) => {
+  const updateStatus = async (newStatus: string, finalInvoiceNumber?: string) => {
     if (!po || !profile) return;
     setUpdating(true);
 
     try {
       const oldStatus = po.status;
+      let updates: any = { status: newStatus, updated_at: new Date().toISOString() };
+      
+      if (finalInvoiceNumber !== undefined) {
+        updates.invoice_number = finalInvoiceNumber;
+      }
+
       const { error: updateError } = await supabase
         .from('purchase_orders')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq('id', po.id);
       
       if (updateError) throw updateError;
@@ -233,7 +243,7 @@ export function PODetail() {
                 </Button>
              )}
              {po.status === 'Reçu' && (
-                <Button variant="primary" size="sm" onClick={() => updateStatus('Facturé')} disabled={updating} aria-label="Marquer ce bon de commande comme facturé">
+                <Button variant="primary" size="sm" onClick={() => setIsInvoiceModalOpen(true)} disabled={updating} aria-label="Marquer ce bon de commande comme facturé">
                   Marquer comme Facturé
                 </Button>
              )}
@@ -282,6 +292,12 @@ export function PODetail() {
                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</p>
                <p className="text-sm font-medium mt-1">{po.project_type || '-'}</p>
              </div>
+             {po.invoice_number && (
+               <div>
+                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Num. Facture</p>
+                 <p className="text-sm font-medium mt-1">{po.invoice_number}</p>
+               </div>
+             )}
              <div>
                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Montant Total</p>
                <p className="text-lg font-bold text-black mt-0.5">
@@ -408,6 +424,45 @@ export function PODetail() {
           </div>
         </div>
       </div>
+
+      {isInvoiceModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-800">Numéro de facture</h3>
+              <button onClick={() => setIsInvoiceModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <X size={18} className="text-slate-400" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-slate-600 mb-4">
+                Veuillez entrer le numéro de la facture pour marquer cette commande comme facturée.
+              </p>
+              <input
+                type="text"
+                autoFocus
+                placeholder="Ex: FACT-2024-001"
+                value={invoiceTempNumber}
+                onChange={(e) => setInvoiceTempNumber(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 outline-none"
+              />
+            </div>
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Annuler</Button>
+              <Button 
+                variant="primary" 
+                disabled={!invoiceTempNumber.trim()}
+                onClick={() => {
+                  updateStatus('Facturé', invoiceTempNumber.trim());
+                  setIsInvoiceModalOpen(false);
+                }}
+              >
+                Confirmer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

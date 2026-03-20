@@ -73,7 +73,7 @@ export function UserManagement() {
       <PageHeader
         title="Gestion des Utilisateurs"
         subtitle="Approuvez, révoquez ou modifiez les rôles des utilisateurs de la plateforme."
-        searchPlaceholder="Rechercher par email..."
+        hideSearch={true}
       />
 
       <div className="px-8 flex flex-col gap-5">
