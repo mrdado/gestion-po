@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MoreHorizontal, Plus, Trash2, Edit, Upload } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { MoreHorizontal, Plus, Trash2, Edit, Upload, ChevronUp, ChevronDown } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -15,6 +15,9 @@ const statusMap: Record<string, { label: string; variant: 'commandé' | 'partiel
   'Payé':            { label: 'PAYÉ',           variant: 'payé' },
 };
 
+type SortField = 'po_number' | 'po_date' | 'vendor_name' | 'project_number' | 'expected_delivery_date' | 'invoice_number' | 'total_amount' | 'status';
+type SortDirection = 'asc' | 'desc' | null;
+
 export function POList() {
   const navigate = useNavigate();
   const [pos, setPos] = useState<any[]>([]);
@@ -23,6 +26,8 @@ export function POList() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [showImporter, setShowImporter] = useState(false);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   useEffect(() => {
     fetchPOs();
@@ -86,18 +91,107 @@ export function POList() {
   };
 
   // Filter Logic
-  const filteredPOs = pos.filter((po) => {
-    const matchesSearch = 
-      po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.vendor?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.project_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Exact match for status filter if defined, or true if 'ALL' or empty
-    const matchesStatus = statusFilter === '' || statusFilter === 'ALL' ? true : po.status === statusFilter;
+  const filteredPOs = useMemo(() => {
+    return pos.filter((po) => {
+      const matchesSearch = 
+        po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        po.vendor?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        po.project_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        po.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Exact match for status filter if defined, or true if 'ALL' or empty
+      const matchesStatus = statusFilter === '' || statusFilter === 'ALL' ? true : po.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    });
+  }, [pos, searchQuery, statusFilter]);
+
+  // Sorting Logic
+  const sortedPOs = useMemo(() => {
+    if (!sortField || !sortDirection) return filteredPOs;
+
+    const sorted = [...filteredPOs].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+
+      switch (sortField) {
+        case 'po_number':
+          aVal = a.po_number || '';
+          bVal = b.po_number || '';
+          break;
+        case 'po_date':
+          aVal = a.po_date ? new Date(a.po_date).getTime() : 0;
+          bVal = b.po_date ? new Date(b.po_date).getTime() : 0;
+          break;
+        case 'vendor_name':
+          aVal = a.vendor?.name?.toLowerCase() || '';
+          bVal = b.vendor?.name?.toLowerCase() || '';
+          break;
+        case 'project_number':
+          aVal = a.project_number || '';
+          bVal = b.project_number || '';
+          break;
+        case 'expected_delivery_date':
+          aVal = a.expected_delivery_date ? new Date(a.expected_delivery_date).getTime() : Infinity;
+          bVal = b.expected_delivery_date ? new Date(b.expected_delivery_date).getTime() : Infinity;
+          break;
+        case 'invoice_number':
+          aVal = a.invoice_number || '';
+          bVal = b.invoice_number || '';
+          break;
+        case 'total_amount':
+          aVal = Number(a.total_amount) || 0;
+          bVal = Number(b.total_amount) || 0;
+          break;
+        case 'status':
+          aVal = a.status || '';
+          bVal = b.status || '';
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+        return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+
+      if (sortDirection === 'asc') {
+        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+      } else {
+        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+      }
+    });
+
+    return sorted;
+  }, [filteredPOs, sortField, sortDirection]);
+
+  // Handle column header click to cycle through sort states
+  const handleColumnSort = (field: SortField) => {
+    if (sortField === field) {
+      // Cycle: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      // New column: start with ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Helper to render sort indicator
+  const renderSortIndicator = (field: SortField) => {
+    if (sortField !== field) return null;
+    
+    return sortDirection === 'asc' 
+      ? <ChevronUp className="h-4 w-4 inline ml-1" style={{ color: 'var(--accent)' }} />
+      : <ChevronDown className="h-4 w-4 inline ml-1" style={{ color: 'var(--accent)' }} />;
+  };
 
   return (
     <div className="flex flex-col gap-6 pb-8">
@@ -176,29 +270,99 @@ export function POList() {
             <div className="flex items-center gap-3">
               <h3 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Toutes les Commandes</h3>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100" style={{ color: 'var(--text-secondary)' }}>
-                {filteredPOs.length} Total
+                {sortedPOs.length} Total
               </span>
             </div>
           </div>
 
           {/* Column headers */}
           <div className="grid px-6 py-3 overflow-hidden" style={{
-            gridTemplateColumns: '100px 100px 1fr 1fr 110px 90px 110px 110px 48px',
+            gridTemplateColumns: '100px 100px 1fr 1fr 110px 110px 110px 110px 48px',
             backgroundColor: 'var(--surface)',
             borderBottom: `0.8px solid var(--color-border)`
           }}>
-            {['N° BC', 'DATE BC', 'FOURNISSEUR', 'AFFAIRE', 'D. PRÉVUE', 'N° FACTURE', 'MONTANT', 'STATUT', ''].map(h => (
-              <span key={h} className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>{h}</span>
-            ))}
+            <button 
+              onClick={() => handleColumnSort('po_number')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par numéro de bon de commande"
+            >
+              N° BC {renderSortIndicator('po_number')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('po_date')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par date de bon de commande"
+            >
+              DATE BC {renderSortIndicator('po_date')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('vendor_name')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par fournisseur"
+            >
+              FOURNISSEUR {renderSortIndicator('vendor_name')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('project_number')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par affaire"
+            >
+              AFFAIRE {renderSortIndicator('project_number')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('expected_delivery_date')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par date prévue de livraison"
+            >
+              D. PRÉVUE {renderSortIndicator('expected_delivery_date')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('invoice_number')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par numéro de facture"
+            >
+              N° FACTURE {renderSortIndicator('invoice_number')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('total_amount')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par montant"
+            >
+              MONTANT {renderSortIndicator('total_amount')}
+            </button>
+
+            <button 
+              onClick={() => handleColumnSort('status')}
+              className="text-xs font-semibold uppercase tracking-wider text-left hover:opacity-75 transition-opacity flex items-center gap-1"
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              aria-label="Trier par statut"
+            >
+              STATUT {renderSortIndicator('status')}
+            </button>
+
+            <span></span>
           </div>
 
           {/* Rows */}
           {loading ? (
             <div className="p-8 text-center loading-message">Chargement des bons de commande...</div>
-          ) : filteredPOs.length === 0 ? (
+          ) : sortedPOs.length === 0 ? (
             <div className="p-8 text-center empty-state">Aucun bon de commande trouvé.</div>
           ) : (
-            filteredPOs.map((po: any) => {
+            sortedPOs.map((po: any) => {
               const st = getStatusDisplay(po.status);
               
               const dateStr = po.expected_delivery_date 
@@ -209,7 +373,7 @@ export function POList() {
                 <div
                    key={po.id}
                    className="grid items-center px-6 py-4 border-b border-gray-50 last:border-0 relative transition-colors hover:bg-[var(--surface-hover)]"
-                   style={{ gridTemplateColumns: '100px 100px 1fr 1fr 110px 90px 110px 110px 48px' }}
+                   style={{ gridTemplateColumns: '100px 100px 1fr 1fr 110px 110px 110px 110px 48px' }}
                  >
                    <Link to={`/po/${po.id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
                      {po.po_number}

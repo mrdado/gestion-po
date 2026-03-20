@@ -22,6 +22,8 @@ interface ImportRow {
   project_type?: string;
   total_amount: number;
   expected_delivery_date?: string;
+  po_date?: string;
+  invoice_number?: string;
   status: string;
   currency: string;
   internal_notes?: string;
@@ -62,6 +64,24 @@ export function DataImporter({ onClose, onSuccess }: DataImporterProps) {
     }
   };
 
+  const parseCSVDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const cleanDate = dateStr.trim();
+    
+    // ISO format AAAA-MM-JJ
+    if (/^\d{4}-\d{2}-\d{2}/.test(cleanDate)) return cleanDate;
+    
+    // French format JJ/MM/AAAA or JJ-MM-AAAA
+    const parts = cleanDate.split(/[/-]/);
+    if (parts.length === 3) {
+      const [d, m, y] = parts;
+      if (d.length === 4) return `${d}-${m.padStart(2, '0')}-${y.padStart(2, '0')}`;
+      const fullYear = y.length === 2 ? `20${y}` : y;
+      return `${fullYear}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+    return cleanDate;
+  };
+
   const validateCSV = (file: File) => {
     setResults([]);
     setErrorStatus(null);
@@ -100,9 +120,15 @@ export function DataImporter({ onClose, onSuccess }: DataImporterProps) {
             warnings.push(`Nouveau fournisseur: ${vendor_name}`);
           }
 
-          // Normalize Date
-          let dateStr = (row.expected_delivery_date || row['DATE PRÉVUE'] || '').toString().trim();
-          const expected_delivery_date = dateStr || null;
+          // Normalize Expected Date
+          let dateStr = (row.expected_delivery_date || row['DATE PRÉVUE'] || row['Date Prévue'] || row['Expected Date'] || '').toString().trim();
+          const expected_delivery_date = parseCSVDate(dateStr);
+
+          // Normalize PO Date
+          let poDateStr = (row.po_date || row['DATE BC'] || row['DATE COMMANDE'] || row['Date BC'] || row['Date Commande'] || row['PO Date'] || '').toString().trim();
+          const po_date = parseCSVDate(poDateStr);
+
+          const invoice_number = (row.invoice_number || row['N° FACTURE'] || row['N° Facture'] || row['Facture'] || row['Invoice'] || '').toString().trim();
 
           // Normalize Project Type
           let projectType = (row.project_type || '').toString().trim();
@@ -122,6 +148,8 @@ export function DataImporter({ onClose, onSuccess }: DataImporterProps) {
               project_type: projectType,
               total_amount,
               expected_delivery_date,
+              po_date,
+              invoice_number,
               status,
               currency: (row.currency || 'EUR').toString().trim().toUpperCase(),
               internal_notes: (row.internal_notes || row['NOTES'] || row['COMMENTAIRES'] || row['Comments'] || '').toString().trim()
@@ -169,48 +197,58 @@ export function DataImporter({ onClose, onSuccess }: DataImporterProps) {
         });
       }
 
-      // 2. Prepare & Insert POs
-      const poToInsert = validRows.map(r => ({
+      // 2. Identify new vs existing POs to avoid duplicate PO Items
+      const { data: existingPOs } = await supabase
+        .from('purchase_orders')
+        .select('po_number')
+        .in('po_number', validRows.map(r => r.data.po_number));
+      
+      const existingPONumbers = new Set(existingPOs?.map(po => po.po_number) || []);
+      
+      // 3. Prepare & Upsert POs
+      const poToUpsert = validRows.map(r => ({
         po_number: r.data.po_number,
         vendor_id: vendorMapping[r.data.vendor_name.toLowerCase().trim()],
         project_number: r.data.project_number,
         project_type: r.data.project_type || null,
         total_amount: r.data.total_amount,
         expected_delivery_date: r.data.expected_delivery_date,
+        po_date: r.data.po_date,
+        invoice_number: r.data.invoice_number,
         status: r.data.status,
         currency: r.data.currency,
-        internal_notes: r.data.internal_notes,
-        created_at: new Date().toISOString()
+        internal_notes: r.data.internal_notes
       }));
 
-      const { data: insertedPOs, error: poError } = await supabase
+      const { data: upsertedPOs, error: poError } = await supabase
         .from('purchase_orders')
-        .insert(poToInsert)
+        .upsert(poToUpsert, { onConflict: 'po_number' })
         .select();
 
-      if (poError) {
-        if (poError.code === '23505') throw new Error(`Doublon détecté: un bon de commande avec ce numéro existe déjà.`);
-        throw poError;
-      }
+      if (poError) throw poError;
 
-      // 3. Create PO Items (Line Items)
-      if (insertedPOs && insertedPOs.length > 0) {
-        const itemsToInsert = insertedPOs.map(po => {
-          const originalRow = validRows.find(r => r.data.po_number === po.po_number);
-          return {
-            po_id: po.id,
-            description: originalRow?.data.article_description || 'Article divers',
-            quantity_ordered: 1,
-            unit_price: po.total_amount,
-            quantity_received: po.status === 'Payé' || po.status === 'Reçu' ? 1 : 0
-          };
-        });
-
-        const { error: itemsError } = await supabase
-          .from('po_items')
-          .insert(itemsToInsert);
+      // 4. Create PO Items (Line Items) - ONLY for NEW POs
+      if (upsertedPOs && upsertedPOs.length > 0) {
+        const newPOsForItems = upsertedPOs.filter(po => !existingPONumbers.has(po.po_number));
         
-        if (itemsError) throw itemsError;
+        if (newPOsForItems.length > 0) {
+          const itemsToInsert = newPOsForItems.map(po => {
+            const originalRow = validRows.find(r => r.data.po_number === po.po_number);
+            return {
+              po_id: po.id,
+              description: originalRow?.data.article_description || 'Article divers',
+              quantity_ordered: 1,
+              unit_price: po.total_amount,
+              quantity_received: po.status === 'Payé' || po.status === 'Reçu' ? 1 : 0
+            };
+          });
+
+          const { error: itemsError } = await supabase
+            .from('po_items')
+            .insert(itemsToInsert);
+          
+          if (itemsError) throw itemsError;
+        }
       }
 
       setStep('success');
@@ -265,8 +303,8 @@ export function DataImporter({ onClose, onSuccess }: DataImporterProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl">
-                {['po_number', 'vendor_name', 'total_amount', 'project_number', 'status', 'article'].map(col => (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-3xl">
+                {['po_number', 'vendor_name', 'total_amount', 'po_date', 'invoice_number', 'affaire', 'status', 'article'].map(col => (
                   <div key={col} className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-2">
                     <CheckCircle2 size={14} className="text-emerald-500" />
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{col}</span>
