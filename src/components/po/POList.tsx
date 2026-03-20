@@ -118,26 +118,28 @@ export function POList() {
         )}
         
         {/* Filters & Actions Bar */}
-        <div className="flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-wrap gap-4 items-center justify-between p-4 rounded-xl shadow-sm border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex flex-1 items-center gap-3">
 
-            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <div className="h-6 w-px mx-1" style={{ backgroundColor: 'var(--color-border)' }}></div>
 
-            <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
+            <div className="flex p-1 rounded-lg border" style={{ backgroundColor: 'var(--surface-alt)', borderColor: 'var(--color-border)' }}>
               {['ALL', 'Commandé', 'Partiel', 'Reçu', 'Facturé', 'Payé'].map(status => (
                 <button
-                  key={status}
-                  onClick={() => setStatusFilter(status === 'ALL' ? '' : status)}
-                  aria-label={`Filtrer par statut ${status}`}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                    (statusFilter === status || (statusFilter === '' && status === 'ALL'))
-                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                  style={{
-                    outlineColor: 'var(--accent)'
-                  }}
-                >
+                   key={status}
+                   onClick={() => setStatusFilter(status === 'ALL' ? '' : status)}
+                   aria-label={`Filtrer par statut ${status}`}
+                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      (statusFilter === status || (statusFilter === '' && status === 'ALL'))
+                        ? 'shadow-sm'
+                        : ''
+                    }`}
+                   style={
+                      (statusFilter === status || (statusFilter === '' && status === 'ALL'))
+                        ? { backgroundColor: 'var(--surface)', color: 'var(--text-primary)', border: `0.8px solid var(--color-border)`, outlineColor: 'var(--accent)' }
+                        : { color: 'var(--text-secondary)', outlineColor: 'var(--accent)' }
+                    }
+                 >
                   {status}
                 </button>
               ))}
@@ -147,7 +149,10 @@ export function POList() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowImporter(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-black bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-black rounded-xl transition-all shadow-sm"
+              style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-alt)'}
               aria-label="Importer des données depuis CSV"
             >
               <Upload className="h-4 w-4" />
@@ -167,7 +172,7 @@ export function POList() {
 
         {/* Data Table */}
         <div className="card">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 overflow-hidden" style={{ borderBottom: `0.8px solid var(--color-border)` }}>
             <div className="flex items-center gap-3">
               <h3 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Toutes les Commandes</h3>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100" style={{ color: 'var(--text-secondary)' }}>
@@ -177,12 +182,13 @@ export function POList() {
           </div>
 
           {/* Column headers */}
-          <div className="grid px-6 py-3 border-b border-gray-50 overflow-hidden" style={{
-            gridTemplateColumns: '140px 1fr 120px 110px 120px 120px 120px 48px',
+          <div className="grid px-6 py-3 overflow-hidden" style={{
+            gridTemplateColumns: '100px 100px 1fr 1fr 110px 90px 110px 110px 48px',
             backgroundColor: 'var(--surface)',
+            borderBottom: `0.8px solid var(--color-border)`
           }}>
-            {['N° BC', 'FOURNISSEUR', 'AFFAIRE', 'DATE PRÉVUE', 'N° FACTURE', 'MONTANT', 'STATUT', ''].map(h => (
-              <span key={h} className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>{h}</span>
+            {['N° BC', 'DATE BC', 'FOURNISSEUR', 'AFFAIRE', 'D. PRÉVUE', 'N° FACTURE', 'MONTANT', 'STATUT', ''].map(h => (
+              <span key={h} className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>{h}</span>
             ))}
           </div>
 
@@ -196,35 +202,43 @@ export function POList() {
               const st = getStatusDisplay(po.status);
               
               const dateStr = po.expected_delivery_date 
-                ? new Date(po.expected_delivery_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+                ? new Date(po.expected_delivery_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                 : 'Non définie';
 
               return (
                 <div
-                  key={po.id}
-                  className="grid items-center px-6 py-4 border-b border-gray-50 last:border-0 hover-surface relative"
-                  style={{ gridTemplateColumns: '140px 1fr 120px 110px 120px 120px 120px 48px' }}
-                >
-                  <Link to={`/po/${po.id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
-                    {po.po_number}
-                  </Link>
+                   key={po.id}
+                   className="grid items-center px-6 py-4 border-b border-gray-50 last:border-0 relative transition-colors hover:bg-[var(--surface-hover)]"
+                   style={{ gridTemplateColumns: '100px 100px 1fr 1fr 110px 90px 110px 110px 48px' }}
+                 >
+                   <Link to={`/po/${po.id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
+                     {po.po_number}
+                   </Link>
 
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col">
-                      <Link 
-                        to={`/fournisseur/${po.vendor_id}`} 
-                        className="text-sm font-medium hover:text-emerald-600 transition-colors"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {po.vendor?.name || 'Fournisseur Inconnu'}
-                      </Link>
-                    </div>
-                  </div>
+                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                     {po.po_date 
+                       ? new Date(po.po_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                       : new Date(po.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                   </span>
 
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{po.project_number || '-'}</span>
-                    <span className="text-xs text-gray-500">{po.project_type || ''}</span>
-                  </div>
+                   <div className="flex items-center gap-3 min-w-0">
+                     <div className="flex flex-col min-w-0">
+                       <Link 
+                         to={`/fournisseur/${po.vendor_id}`} 
+                         className="text-sm font-medium transition-colors truncate"
+                         style={{ color: 'var(--text-primary)' }}
+                         onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
+                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                       >
+                         {po.vendor?.name || 'Fournisseur Inconnu'}
+                       </Link>
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col">
+                     <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{po.project_number || '-'}</span>
+                     <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{po.project_type || ''}</span>
+                   </div>
 
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{dateStr}</span>
 
@@ -247,23 +261,32 @@ export function POList() {
                         e.stopPropagation();
                         setMenuOpenId(menuOpenId === po.id ? null : po.id);
                       }}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-200 transition-colors text-gray-400"
+                      className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+                      style={{ color: 'var(--text-tertiary)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
 
                     {menuOpenId === po.id && (
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-[100] py-2">
+                      <div className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl z-[100] py-2" style={{ backgroundColor: 'var(--surface)', border: `0.8px solid var(--color-border)` }}>
                         <button 
                           onClick={() => navigate(`/po/modifier/${po.id}`)}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                          style={{ color: 'var(--text-primary)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <Edit className="h-4 w-4 text-gray-400" />
+                          <Edit className="h-4 w-4" style={{ color: 'var(--text-tertiary)' }} />
                           Modifier
                         </button>
                         <button 
                           onClick={(e) => handleDelete(po.id, e)}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                          style={{ color: 'var(--danger)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--danger-bg)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                           <Trash2 className="h-4 w-4" />
                           Supprimer

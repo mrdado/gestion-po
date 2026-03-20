@@ -11,8 +11,7 @@ import {
   BarChart3, Loader2, ArrowLeft,
   Calendar, FileText
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
 
 const statusVariantMap: Record<string, 'commandé' | 'partiel' | 'reçu' | 'facturé' | 'payé'> = {
   'Commandé': 'commandé',
@@ -275,9 +274,11 @@ export function VendorDetail() {
                     </Link>
                   </TableCell>
                   <TableCell className="text-slate-500">
-                    <div className="flex items-center gap-2">
-                       <Calendar size={14} className="text-slate-300" />
-                       {format(new Date(po.created_at), 'dd MMM yyyy', { locale: fr })}
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                       <Calendar size={14} className="text-slate-400" />
+                       {po.po_date 
+                         ? new Date(po.po_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                         : new Date(po.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </div>
                   </TableCell>
                   <TableCell className="font-medium text-slate-600">{po.project_number || '-'}</TableCell>

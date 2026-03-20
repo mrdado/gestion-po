@@ -21,6 +21,7 @@ export function POEntry() {
   const [items, setItems] = useState<POItemInput[]>([
     { id: crypto.randomUUID(), description: '', quantity: 1, unit_price: 0 }
   ]);
+  const [poDate, setPoDate] = useState(new Date().toISOString().split('T')[0]);
   const [projectNumber, setProjectNumber] = useState('');
   const [projectType, setProjectType] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +60,7 @@ export function POEntry() {
       if (po) {
         setPoNumber(po.po_number);
         setVendorId(po.vendor_id);
+        setPoDate(po.po_date ? po.po_date.substring(0, 10) : new Date(po.created_at).toISOString().split('T')[0]);
         setDeliveryDate(po.expected_delivery_date ? po.expected_delivery_date.substring(0, 10) : '');
         setProjectNumber(po.project_number || '');
         setProjectType(po.project_type || '');
@@ -125,6 +127,7 @@ export function POEntry() {
             vendor_id: vendorId,
             total_amount: totalAmount,
             expected_delivery_date: deliveryDate || null,
+            po_date: poDate || null,
             project_number: projectNumber || null,
             project_type: projectType || null
           })
@@ -153,6 +156,7 @@ export function POEntry() {
             total_amount: totalAmount,
             currency: 'EUR',
             expected_delivery_date: deliveryDate || null,
+            po_date: poDate || null,
             project_number: projectNumber || null,
             project_type: projectType || null
           }])
@@ -239,6 +243,22 @@ export function POEntry() {
                 </select>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <label className="text-sm font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Date de Commande *</label>
+                <input 
+                  type="date" 
+                  required
+                  value={poDate}
+                  onChange={e => setPoDate(e.target.value)}
+                  className="w-full h-11 px-3 rounded-lg border text-sm outline-none transition-colors focus:border-black"
+                  style={{ borderColor: 'var(--color-border)', color: 'var(--text-primary)', backgroundColor: 'var(--bg)' }} 
+                />
+              </div>
+              <div />
+            </div>
+
             <div className="grid grid-cols-2 gap-5">
               <div>
                 <label className="text-sm font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>N° d'affaire</label>

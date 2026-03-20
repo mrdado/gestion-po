@@ -334,7 +334,11 @@ export function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{po.po_number} - {po.vendors?.name || 'Fournisseur inconnu'}</p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{new Date(po.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                        {po.po_date 
+                          ? new Date(po.po_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                          : new Date(po.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </p>
                     </div>
                     <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{formatCurrency(Number(po.total_amount))}</span>
                   </Link>

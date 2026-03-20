@@ -200,9 +200,9 @@ export function PODetail() {
     );
   }
 
-  const createdDate = new Date(po.created_at).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-  });
+  const poDateFormatted = po.po_date 
+    ? new Date(po.po_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : new Date(po.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   const subtotal = po.total_amount;
   
@@ -281,8 +281,16 @@ export function PODetail() {
           
           <div className="flex gap-10">
              <div>
-               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date de création</p>
-               <p className="text-sm font-medium mt-1">{createdDate}</p>
+               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date de Commande</p>
+               <p className="text-sm font-medium mt-1">{poDateFormatted}</p>
+             </div>
+             <div>
+               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date Prévue</p>
+               <p className="text-sm font-medium mt-1">
+                 {po.expected_delivery_date
+                   ? new Date(po.expected_delivery_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                   : '-'}
+               </p>
              </div>
              <div>
                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">N° d'Affaire</p>

@@ -32,6 +32,7 @@ create table purchase_orders (
   project_number text,
   project_type text check (project_type in ('RDI', 'FG', 'Comm')),
   invoice_number text,
+  po_date date,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
