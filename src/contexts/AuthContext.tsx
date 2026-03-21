@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 export interface Profile {
   id: string;
   email: string;
+  full_name?: string;
   is_approved: boolean;
   role: 'user' | 'admin';
   receive_email_notifications: boolean;

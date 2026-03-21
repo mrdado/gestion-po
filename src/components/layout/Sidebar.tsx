@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Settings, Move, LogOut } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
@@ -16,14 +16,21 @@ interface SidebarProps {
 export function Sidebar({ navItems, currentPath }: SidebarProps) {
   const { profile, signOut } = useAuth();
   
-  // Extract initials from email (e.g., john.doe@... -> JD)
-  const getInitials = (email?: string) => {
-    if (!email) return 'U';
-    const parts = email.split('@')[0].split('.');
+  // Extract initials from full name or email (e.g., John Doe -> JD)
+  const getInitials = (nameOrEmail?: string) => {
+    if (!nameOrEmail) return 'U';
+    if (nameOrEmail.includes('@')) {
+      const parts = nameOrEmail.split('@')[0].split('.');
+      if (parts.length > 1) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return nameOrEmail.substring(0, 2).toUpperCase();
+    }
+    const parts = nameOrEmail.split(' ').filter(p => p.length > 0);
     if (parts.length > 1) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    return email.substring(0, 2).toUpperCase();
+    return nameOrEmail.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -32,8 +39,8 @@ export function Sidebar({ navItems, currentPath }: SidebarProps) {
       style={{ width: 72, backgroundColor: 'transparent' }}
     >
       {/* Brand logo — floating, no background */}
-      <div className="w-10 h-10 flex items-center justify-center mb-1">
-        <Move className="h-6 w-6" style={{ color: 'var(--accent)' }} />
+      <div className="w-12 h-12 flex items-center justify-center mb-1">
+        <img src="/logo.png" alt="Gestion PO Logo" className="w-12 h-12 object-contain" />
       </div>
 
       {/* White nav card wrapping all navigation icons */}
@@ -83,12 +90,12 @@ export function Sidebar({ navItems, currentPath }: SidebarProps) {
         </button>
         <div 
           className="w-10 h-10 rounded-full flex items-center justify-center select-none"
-          title={profile?.email || 'Utilisateur'}
+          title={profile?.full_name || profile?.email || 'Utilisateur'}
           role="img"
-          aria-label={`Profil utilisateur: ${profile?.email || 'Utilisateur'}`}
+          aria-label={`Profil utilisateur: ${profile?.full_name || profile?.email || 'Utilisateur'}`}
           style={{ backgroundColor: profile?.role === 'admin' ? '#7C3AED' : '#FBBF24' }}
         >
-          <span className="text-white text-xs font-bold">{getInitials(profile?.email)}</span>
+          <span className="text-white text-xs font-bold">{getInitials(profile?.full_name || profile?.email)}</span>
         </div>
       </div>
     </div>

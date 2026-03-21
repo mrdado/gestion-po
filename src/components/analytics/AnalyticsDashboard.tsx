@@ -171,13 +171,13 @@ export function AnalyticsDashboard() {
       return { name: v.name, rate: Math.round((onTime / vPOs.length) * 100), pos: vPOs.length };
     }).sort((a, b) => b.rate - a.rate).slice(0, 5);
 
-    // 6. Monthly Trend
+    // 6. Monthly Trend (use po_date if available, fallback to created_at)
     const trend = [];
     for (let i = 5; i >= 0; i--) {
       const start = startOfMonth(subMonths(new Date(), i));
       const end = endOfMonth(subMonths(new Date(), i));
       const val = pos
-        .filter(p => isWithinInterval(parseISO(p.created_at), { start, end }))
+        .filter(p => isWithinInterval(parseISO(p.po_date || p.created_at), { start, end }))
         .reduce((sum, p) => sum + Number(p.total_amount), 0);
       trend.push({ name: format(start, 'MMM', { locale: fr }), value: val });
     }

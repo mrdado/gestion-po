@@ -59,6 +59,14 @@ export function UserManagement() {
     setUsers(users.map(u => u.id === id ? { ...u, role: newRole as 'admin' | 'user' } : u));
   };
 
+  const updateName = async (id: string, newName: string) => {
+    await supabase
+      .from('profiles')
+      .update({ full_name: newName })
+      .eq('id', id);
+    setUsers(users.map(u => u.id === id ? { ...u, full_name: newName } : u));
+  };
+
   const toggleNotifications = async (id: string, currentStatus: boolean) => {
     const newValue = !currentStatus;
     await supabase
@@ -81,7 +89,7 @@ export function UserManagement() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b" style={{ borderColor: 'var(--border)' }}>
-                {['Email', 'Rôle', 'Statut', 'Alertes Email', 'Actions'].map(h => (
+                {['Utilisateur', 'Rôle', 'Statut', 'Alertes Email', 'Actions'].map(h => (
                   <th key={h} className={`px-5 py-4 text-xs font-semibold uppercase tracking-wider text-left`} style={{ color: 'var(--text-tertiary)' }}>
                     {h}
                   </th>
@@ -101,14 +109,28 @@ export function UserManagement() {
                 users.map((user) => (
                   <tr key={user.id} className="border-b transition-colors hover:bg-gray-50" style={{ borderColor: 'var(--border)' }}>
                     
-                    {/* Email */}
+                    {/* Utilisateur */}
                     <td className="px-5 py-4">
-                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                        {user.email}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">
+                            {user.full_name || '-'}
+                          </span>
+                          <button 
+                            className="text-xs text-blue-600 hover:underline"
+                            onClick={() => {
+                              const newName = prompt('Nom complet:', user.full_name || '');
+                              if (newName !== null) updateName(user.id, newName);
+                            }}
+                          >
+                            Modifier
+                          </button>
+                        </div>
+                        <span className="text-gray-500 text-xs">{user.email}</span>
                         {user.id === currentAdminProfile?.id && (
-                          <span className="ml-2 text-xs text-gray-400 font-normal">(Vous)</span>
+                          <span className="text-xs text-gray-400 font-normal">(Vous)</span>
                         )}
-                      </p>
+                      </div>
                     </td>
 
                     {/* Role */}

@@ -111,6 +111,38 @@ export function POList() {
     if (!sortField || !sortDirection) return filteredPOs;
 
     const sorted = [...filteredPOs].sort((a, b) => {
+      // Special handling for date fields - nulls always go to end
+      if (sortField === 'po_date') {
+        const aDate = a.po_date ? new Date(a.po_date).getTime() : null;
+        const bDate = b.po_date ? new Date(b.po_date).getTime() : null;
+        
+        if (aDate === null && bDate === null) return 0;
+        if (aDate === null) return 1;  // a to end
+        if (bDate === null) return -1; // b to end
+        
+        if (sortDirection === 'asc') {
+          return aDate > bDate ? 1 : aDate < bDate ? -1 : 0;
+        } else {
+          return aDate < bDate ? 1 : aDate > bDate ? -1 : 0;
+        }
+      }
+
+      if (sortField === 'expected_delivery_date') {
+        const aDate = a.expected_delivery_date ? new Date(a.expected_delivery_date).getTime() : null;
+        const bDate = b.expected_delivery_date ? new Date(b.expected_delivery_date).getTime() : null;
+        
+        if (aDate === null && bDate === null) return 0;
+        if (aDate === null) return 1;  // a to end
+        if (bDate === null) return -1; // b to end
+        
+        if (sortDirection === 'asc') {
+          return aDate > bDate ? 1 : aDate < bDate ? -1 : 0;
+        } else {
+          return aDate < bDate ? 1 : aDate > bDate ? -1 : 0;
+        }
+      }
+
+      // Regular fields
       let aVal: any;
       let bVal: any;
 
@@ -119,10 +151,6 @@ export function POList() {
           aVal = a.po_number || '';
           bVal = b.po_number || '';
           break;
-        case 'po_date':
-          aVal = a.po_date ? new Date(a.po_date).getTime() : 0;
-          bVal = b.po_date ? new Date(b.po_date).getTime() : 0;
-          break;
         case 'vendor_name':
           aVal = a.vendor?.name?.toLowerCase() || '';
           bVal = b.vendor?.name?.toLowerCase() || '';
@@ -130,10 +158,6 @@ export function POList() {
         case 'project_number':
           aVal = a.project_number || '';
           bVal = b.project_number || '';
-          break;
-        case 'expected_delivery_date':
-          aVal = a.expected_delivery_date ? new Date(a.expected_delivery_date).getTime() : Infinity;
-          bVal = b.expected_delivery_date ? new Date(b.expected_delivery_date).getTime() : Infinity;
           break;
         case 'invoice_number':
           aVal = a.invoice_number || '';

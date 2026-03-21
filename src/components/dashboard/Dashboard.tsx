@@ -8,7 +8,7 @@ import {
   format, isSameDay, isSameWeek, isSameMonth, isSameYear
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { FileText, DollarSign, TrendingUp, TrendingDown, Loader2, ChevronDown, Truck } from 'lucide-react';
+import { FileText, Euro, TrendingUp, TrendingDown, Loader2, ChevronDown, Truck } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -91,10 +91,10 @@ export function Dashboard() {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         
-        // Filter for this month and last month
-        const thisMonthPOs = allPOs.filter(po => new Date(po.created_at) >= startOfMonth);
+        // Filter for this month and last month (use po_date if available, fallback to created_at)
+        const thisMonthPOs = allPOs.filter(po => new Date(po.po_date || po.created_at) >= startOfMonth);
         const lastMonthPOs = allPOs.filter(po => {
-          const d = new Date(po.created_at);
+          const d = new Date(po.po_date || po.created_at);
           return d >= startOfLastMonth && d < startOfMonth;
         });
         
@@ -164,42 +164,42 @@ export function Dashboard() {
     let history: any[] = [];
 
     if (timeframe === 'days') {
-      // Last 7 days
+      // Last 7 days (use po_date if available, fallback to created_at)
       history = Array.from({ length: 7 }, (_, i) => {
         const date = subDays(now, 6 - i);
         const label = format(date, 'eee', { locale: fr });
         const amount = allPOsForCalculations
-          .filter(po => isSameDay(new Date(po.created_at), date))
+          .filter(po => isSameDay(new Date(po.po_date || po.created_at), date))
           .reduce((sum, po) => sum + Number(po.total_amount), 0);
         return { jour: label, montant: amount };
       });
     } else if (timeframe === 'weeks') {
-      // Last 5 weeks
+      // Last 5 weeks (use po_date if available, fallback to created_at)
       history = Array.from({ length: 5 }, (_, i) => {
         const date = subWeeks(now, 4 - i);
         const label = `Sem ${format(date, 'w')}`;
         const amount = allPOsForCalculations
-          .filter(po => isSameWeek(new Date(po.created_at), date, { weekStartsOn: 1 }))
+          .filter(po => isSameWeek(new Date(po.po_date || po.created_at), date, { weekStartsOn: 1 }))
           .reduce((sum, po) => sum + Number(po.total_amount), 0);
         return { jour: label, montant: amount };
       });
     } else if (timeframe === 'months') {
-      // Last 6 months
+      // Last 6 months (use po_date if available, fallback to created_at)
       history = Array.from({ length: 6 }, (_, i) => {
         const date = subMonths(now, 5 - i);
         const label = format(date, 'MMM', { locale: fr });
         const amount = allPOsForCalculations
-          .filter(po => isSameMonth(new Date(po.created_at), date))
+          .filter(po => isSameMonth(new Date(po.po_date || po.created_at), date))
           .reduce((sum, po) => sum + Number(po.total_amount), 0);
         return { jour: label, montant: amount };
       });
     } else if (timeframe === 'years') {
-      // Last 3 years
+      // Last 3 years (use po_date if available, fallback to created_at)
       history = Array.from({ length: 3 }, (_, i) => {
         const date = subYears(now, 2 - i);
         const label = format(date, 'yyyy');
         const amount = allPOsForCalculations
-          .filter(po => isSameYear(new Date(po.created_at), date))
+          .filter(po => isSameYear(new Date(po.po_date || po.created_at), date))
           .reduce((sum, po) => sum + Number(po.total_amount), 0);
         return { jour: label, montant: amount };
       });
@@ -223,7 +223,7 @@ export function Dashboard() {
     <div className="flex flex-col gap-6 pb-8">
       {/* Header */}
       <PageHeader
-        title={`Bonjour, ${profile?.email?.split('@')[0] || 'Utilisateur'} !`}
+        title={`Bonjour, ${profile?.full_name || profile?.email?.split('@')[0] || 'Utilisateur'} !`}
         subtitle="Explorez les informations et l'activité de vos bons de commande"
         hideSearch={true}
       />
@@ -235,7 +235,7 @@ export function Dashboard() {
             value={stats.openCount.toString()} trend={stats.openTrend} trendUp sub="Dossiers non finalisés" />
           <KpiCard icon={Truck} iconBgVar="--icon-bg-pending" title="Réceptions en attente"
             value={stats.pendingReceptions.toString()} trend={stats.billedTrend} trendUp sub="Délai de livraison à surveiller" />
-          <KpiCard icon={DollarSign} iconBgVar="--icon-bg-spend" title="Dépenses Mensuelles"
+          <KpiCard icon={Euro} iconBgVar="--icon-bg-spend" title="Dépenses Mensuelles"
             value={formatCurrency(stats.monthlySpend)} trend={stats.spendTrend} trendUp sub="Commandé ce mois-ci" />
         </div>
 

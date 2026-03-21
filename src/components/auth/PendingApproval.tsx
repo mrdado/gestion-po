@@ -21,7 +21,7 @@ export function PendingApproval() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Compte en Attente</h1>
         
         <p className="text-gray-500 mb-8 leading-relaxed">
-          Bonjour <strong>{profile?.email}</strong>.<br /> 
+          Bonjour <strong>{profile?.full_name || profile?.email}</strong>.<br /> 
           Votre compte a bien été créé, mais il nécessite l'approbation d'un administrateur avant de pouvoir accéder à la plateforme.
         </p>
 
