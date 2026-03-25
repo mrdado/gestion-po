@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'logo.png'],
       manifest: {
-        name: 'Gestion PO',
-        short_name: 'GestionPO',
-        description: 'Application de Gestion de PO',
+        name: 'Gestion BC',
+        short_name: 'GestionBC',
+        description: 'Application de Gestion de BC',
         theme_color: '#ffffff',
         icons: [
           {
