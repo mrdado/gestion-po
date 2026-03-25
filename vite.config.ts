@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'logo.png'],
+      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Gestion BC',
         short_name: 'GestionBC',
@@ -18,12 +18,12 @@ export default defineConfig({
         theme_color: '#ffffff',
         icons: [
           {
-            src: 'logo.png',
+            src: 'icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'logo.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png'
           }
