@@ -23,6 +23,8 @@ export function ReceivingForm() {
   const [error, setError] = useState<string | null>(null);
   const [debugError, setDebugError] = useState<any>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [correctedQty, setCorrectedQty] = useState<string>('');
 
   useEffect(() => {
     if (id) fetchPO();
@@ -95,6 +97,38 @@ export function ReceivingForm() {
     }
   };
 
+  const handleUpdateCorrection = async (item: POItem) => {
+    const newQty = Number(correctedQty);
+    if (isNaN(newQty) || newQty < 0 || newQty > item.quantity_ordered) return;
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const { error: err } = await supabase
+        .from('po_items')
+        .update({ quantity_received: newQty })
+        .eq('id', item.id);
+
+      if (err) throw err;
+
+      // Update local state
+      setItems(prev => prev.map(i =>
+        i.id === item.id ? { ...i, quantity_received: newQty } : i
+      ));
+      setEditingItemId(null);
+      setSuccess(`La quantité reçue de "${item.description}" a été corrigée à ${newQty}.`);
+      setTimeout(() => setSuccess(null), 3000);
+
+      // Recalculate PO status
+      await checkAndUpdatePOStatus();
+    } catch (err: any) {
+      console.error('Error correcting item quantity:', err);
+      setError(`Erreur lors de la correction: ${err.message || 'Inconnue'}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleReceiveAll = async (item: POItem) => {
     const remaining = item.quantity_ordered - (item.quantity_received || 0);
     if (remaining <= 0) return;
@@ -156,7 +190,7 @@ export function ReceivingForm() {
       const currentIdx = statusOrder.indexOf(currentPO.status);
       const nextIdx = statusOrder.indexOf(nextStatus);
 
-      if (nextIdx > currentIdx) {
+      if (nextStatus !== currentPO.status) {
         try {
           const { error: updateError } = await supabase
             .from('purchase_orders')
@@ -321,52 +355,105 @@ export function ReceivingForm() {
                         Prix unitaire: {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(item.unit_price)}
                       </span>
                     </div>
-                    <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                      {received} / {ordered} Reçus
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                        {received} / {ordered} Reçus
+                      </span>
+                      {received > 0 && editingItemId !== item.id && (
+                        <button
+                          onClick={() => {
+                            setEditingItemId(item.id);
+                            setCorrectedQty(String(received));
+                          }}
+                          className="text-xs text-gray-500 hover:text-black flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg transition-colors font-medium cursor-pointer"
+                          title="Corriger la quantidade reçue"
+                        >
+                          Corriger
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden mb-3">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${pct}%`, backgroundColor: full ? '#10B981' : '#3B82F6' }}
-                    />
-                  </div>
-                  {!full && (
-                    <div className="flex items-end gap-3 mt-3">
-                      <div className="flex-1">
-                        <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Nouvelle quantité reçue</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max={remaining}
-                          placeholder={`max ${remaining}`}
-                          value={receiveQty[item.id] || ''}
-                          onChange={e => setReceiveQty(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
-                          className="w-full h-9 px-3 rounded-lg border text-sm outline-none"
-                          style={{ borderColor: 'var(--color-border)', color: 'var(--text-primary)' }}
+                  {editingItemId === item.id ? (
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 mt-2 flex flex-col gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Corriger la quantité reçue cumulée :</label>
+                        <div className="flex items-center gap-3">
+                          <div className="w-32">
+                            <input
+                              type="number"
+                              min="0"
+                              max={ordered}
+                              value={correctedQty}
+                              onChange={e => setCorrectedQty(e.target.value)}
+                              className="w-full h-9 px-3 rounded-lg border text-sm outline-none bg-white"
+                              style={{ borderColor: 'var(--color-border)', color: 'var(--text-primary)' }}
+                            />
+                          </div>
+                          <button
+                            onClick={() => handleUpdateCorrection(item)}
+                            disabled={submitting || correctedQty === '' || Number(correctedQty) < 0 || Number(correctedQty) > ordered}
+                            className="px-4 h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors disabled:opacity-50 font-bold cursor-pointer"
+                          >
+                            Enregistrer
+                          </button>
+                          <button
+                            onClick={() => setEditingItemId(null)}
+                            className="px-4 h-9 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-bold cursor-pointer"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                      {Number(correctedQty) > ordered && (
+                        <p className="text-xs text-red-500 font-medium">La quantité ne peut pas dépasser la quantité commandée ({ordered}).</p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden mb-3">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%`, backgroundColor: full ? '#10B981' : '#3B82F6' }}
                         />
                       </div>
-                      <button
-                        disabled={submitting || !receiveQty[item.id]}
-                        onClick={() => handleReceiveItem(item)}
-                        className="btn-outline h-9 disabled:opacity-50"
-                      >
-                        Confirmer
-                      </button>
-                      <button
-                        disabled={submitting}
-                        onClick={() => handleReceiveAll(item)}
-                        className="btn-primary h-9"
-                      >
-                        Tout Réceptionner ({remaining})
-                      </button>
-                    </div>
-                  )}
-                  {full && (
-                    <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: '#16A34A' }}>
-                      <CheckCircle2 className="h-4 w-4" />
-                      Réception complète
-                    </div>
+                      {!full && (
+                        <div className="flex items-end gap-3 mt-3">
+                          <div className="flex-1">
+                            <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Nouvelle quantité reçue</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={remaining}
+                              placeholder={`max ${remaining}`}
+                              value={receiveQty[item.id] || ''}
+                              onChange={e => setReceiveQty(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
+                              className="w-full h-9 px-3 rounded-lg border text-sm outline-none"
+                              style={{ borderColor: 'var(--color-border)', color: 'var(--text-primary)' }}
+                            />
+                          </div>
+                          <button
+                            disabled={submitting || !receiveQty[item.id]}
+                            onClick={() => handleReceiveItem(item)}
+                            className="btn-outline h-9 disabled:opacity-50"
+                          >
+                            Confirmer
+                          </button>
+                          <button
+                            disabled={submitting}
+                            onClick={() => handleReceiveAll(item)}
+                            className="btn-primary h-9"
+                          >
+                            Tout Réceptionner ({remaining})
+                          </button>
+                        </div>
+                      )}
+                      {full && (
+                        <div className="flex items-center gap-2 text-xs font-semibold mt-2" style={{ color: '#16A34A' }}>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Réception complète
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               );

@@ -53,7 +53,8 @@ export function ReceptionList() {
     const matchesSearch = !q ||
       po.po_number?.toLowerCase().includes(q) ||
       po.vendor?.name?.toLowerCase().includes(q) ||
-      po.project_number?.toLowerCase().includes(q);
+      po.project_number?.toLowerCase().includes(q) ||
+      po.po_items?.some((item: any) => item.description?.toLowerCase().includes(q));
 
     // status filter
     let matchesFilter = true;

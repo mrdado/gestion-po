@@ -39,7 +39,7 @@ export function VendorView() {
       setLoading(true);
       const [vendorsRes, posRes] = await Promise.all([
         supabase.from('vendors').select('*').order('name'),
-        supabase.from('purchase_orders').select('id, vendor_id, status')
+        supabase.from('purchase_orders').select('id, vendor_id, status, po_items(id, description)')
       ]);
 
       if (vendorsRes.error) throw vendorsRes.error;
@@ -56,11 +56,21 @@ export function VendorView() {
     return pos.filter(po => po.vendor_id === vendorId && (po.status === 'Commandé' || po.status === 'Partiel')).length;
   };
 
-  const filteredVendors = vendors.filter(v => 
-    v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.contact_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredVendors = vendors.filter(v => {
+    const q = searchQuery.toLowerCase();
+    const matchesVendor = 
+      v.name.toLowerCase().includes(q) ||
+      v.contact_name?.toLowerCase().includes(q) ||
+      v.category?.toLowerCase().includes(q);
+    
+    if (matchesVendor) return true;
+
+    // Check if any of this vendor's PO items match the search query
+    const vendorPOs = pos.filter(po => po.vendor_id === v.id);
+    return vendorPOs.some(po => 
+      po.po_items?.some((item: any) => item.description?.toLowerCase().includes(q))
+    );
+  });
 
   const stats = {
     total: vendors.length,
@@ -262,8 +272,8 @@ export function VendorView() {
                           </div>
                         </td>
                       </tr>
-                    );
-                  })}
+                     );
+                   })}
                 </tbody>
               </table>
               {!loading && filteredVendors.length === 0 && (

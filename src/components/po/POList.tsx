@@ -49,7 +49,7 @@ export function POList() {
     setLoading(true);
     const { data, error } = await supabase
       .from('purchase_orders')
-      .select('*, vendor:vendors(name, contact_email)')
+      .select('*, vendor:vendors(name, contact_email), po_items(id, description)')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -97,7 +97,8 @@ export function POList() {
         po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         po.vendor?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         po.project_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        po.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase());
+        po.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        po.po_items?.some((item: any) => item.description?.toLowerCase().includes(searchQuery.toLowerCase()));
       
       // Exact match for status filter if defined, or true if 'ALL' or empty
       const matchesStatus = statusFilter === '' || statusFilter === 'ALL' ? true : po.status === statusFilter;
