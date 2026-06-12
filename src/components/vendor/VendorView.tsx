@@ -272,8 +272,8 @@ export function VendorView() {
                           </div>
                         </td>
                       </tr>
-                     );
-                   })}
+                    );
+                  })}
                 </tbody>
               </table>
               {!loading && filteredVendors.length === 0 && (

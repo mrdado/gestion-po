@@ -366,7 +366,7 @@ export function ReceivingForm() {
                             setCorrectedQty(String(received));
                           }}
                           className="text-xs text-gray-500 hover:text-black flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg transition-colors font-medium cursor-pointer"
-                          title="Corriger la quantidade reçue"
+                          title="Corriger la quantité reçue"
                         >
                           Corriger
                         </button>
